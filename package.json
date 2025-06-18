@@ -1,0 +1,18 @@
+{
+  "devDependencies": {
+    "tailwindcss": "^4.1.10"
+  },
+  "name": "siladu-main",
+  "version": "1.0.0",
+  "description": "<h1>Sistem Informasi Pelayanan dan Pengaduan</h1> <h2>Definition</h2> This web-based Information System aims to gather public feedback and handle administrative needs for the community.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.10"
+  }
+}

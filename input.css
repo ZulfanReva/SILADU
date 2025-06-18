@@ -1,0 +1,30 @@
+/* Tailwind Base Styles */
+@import url('https://unpkg.com/tailwindcss@^4/dist/base.css');
+/* Tailwind Utilities */
+@import url('https://unpkg.com/tailwindcss@^4/dist/utilities.css');
+
+@layer base {
+  html {
+    color: #080c2e;
+    background-color: #f1f4f5;
+    font-family: "poppins", Poppins, sans-serif;
+  }
+}
+
+@keyframes infinite-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-infinite-scroll {
+  display: flex;
+  animation: infinite-scroll 20s linear infinite;
+}
+
+.animate-infinite-scroll:hover {
+  animation-play-state: paused;
+}
