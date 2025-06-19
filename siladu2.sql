@@ -120,14 +120,14 @@ INSERT INTO `pengaduan_alat_pertanian` (`id_pengaduan`, `id_user`, `jenis_alat`,
 -- Struktur dari tabel `pengaduan_hama_penyakit_tanaman`
 --
 
-CREATE TABLE `pengaduan_hama_penyakit_tanaman` (
-  `id_pengaduan` int(11) NOT NULL,
-  `id_user` int(11) NOT NULL,
-  `jenis_tanaman` enum('Padi','Cabai','Tomat','Terong','Bayam','Kangkung') NOT NULL,
-  `jenis_hama_penyakit` enum('Hama Wereng Hijau,Penyakit Tungro','Hama Kutu Daun, Penyakit Antraknosa','Hama Lalat Buah, Penyakit Layu Bakteri','Hama Trips, Penyakit Kutu Kebul','Hama Ulat Grayak, Penyakit Bercak Daun','Hama Belalang, Penyakit Layu Fusarium') NOT NULL,
-  `alamat_pengadu` varchar(255) NOT NULL,
-  `tgl_pengaduan` date NOT NULL,
-  `status` enum('Menunggu','Diproses','Selesai') NOT NULL
+CREATE TABLE pengaduan_hama_penyakit_tanaman (
+  id_pengaduan int(11) NOT NULL,
+  id_user int(11) NOT NULL,
+  jenis_tanaman enum('Padi','Cabai','Tomat','Terong','Bayam','Kangkung') NOT NULL,
+  jenis_hama_penyakit enum('Hama Wereng Hijau,Penyakit Tungro','Hama Kutu Daun, Penyakit Antraknosa','Hama Lalat Buah, Penyakit Layu Bakteri','Hama Trips, Penyakit Kutu Kebul','Hama Ulat Grayak, Penyakit Bercak Daun','Hama Belalang, Penyakit Layu Fusarium') NOT NULL,
+  alamat_pengadu varchar(255) NOT NULL,
+  tgl_pengaduan date NOT NULL,
+  status enum('Diproses','Direview','Diterima', 'Ditolak') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -303,7 +303,7 @@ CREATE TABLE `user` (
   `email` varchar(50) NOT NULL,
   `alamat` text NOT NULL,
   `tlp` varchar(15) NOT NULL,
-  `level` enum('admin','petugas','warga') NOT NULL,
+  `level` enum('warga','admin','petugas', 'kepala_dinas') NOT NULL,
   `nip` varchar(18) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

@@ -2770,9 +2770,9 @@ progress {
 .form-control:focus {
   color: #495057;
   background-color: #fff;
-  border-color: #e293d3;
+  border-color: rgb(106, 172, 81);
   outline: 0;
-  box-shadow: 0 0 0 2px #e9aede;
+  box-shadow: 0 0 0 2px #8cd968;
 }
 
 .form-control::-webkit-date-and-time-value {
@@ -21691,8 +21691,8 @@ fieldset:disabled .btn {
 }
 
 .input-group .form-control:focus {
-  border-left: 1px solid #e293d3 !important;
-  border-right: 1px solid #e293d3 !important;
+  border-left: 1px solid #6aac51 !important;
+  border-right: 1px solid #6aac51 !important;
 }
 
 .input-group .form-control:not(:first-child) {
@@ -21746,12 +21746,12 @@ fieldset:disabled .btn {
 }
 
 .focused .form-control + .input-group-text {
-  border-color: #e293d3;
-  border-right: 1px solid #e293d3 !important;
+  border-color: #6aac51;
+  border-right: 1px solid #6aac51 !important;
 }
 
 .focused .input-group-text {
-  border-color: #e293d3;
+  border-color: #6aac51;
 }
 
 .form-check:not(.form-switch) .form-check-input[type="checkbox"],
@@ -27283,7 +27283,7 @@ pre[class*="language-"] {
   position: relative;
   width: 100%;
   height: 100%;
-  background-image: url('thumbnail-chart.png');
+  background-image: url("thumbnail-chart.png");
   background-size: cover;
   background-position: center;
   padding: 20px; /* opsional, buat jarak dari sisi */
@@ -27314,10 +27314,11 @@ canvas {
   min-width: 150px;
 }
 .form-select:focus {
-    outline: none;
-    border-color: rgb(106, 172, 81);
-    box-shadow: 0 0 0 0.2rem rgba(106, 172, 81, 0.25);
-  }
+  outline: none;
+  border-color: rgb(106, 172, 81);
+  box-shadow: 0 0 0 0.2rem rgba(106, 172, 81, 0.25);
+}
+
 label {
   font-weight: 600;
   color: #333;
