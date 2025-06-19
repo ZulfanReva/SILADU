@@ -4,8 +4,8 @@ session_start();
 // Cek apakah user sudah login
 if (!isset($_SESSION['id_user'])) {
   // Jika tidak, redirect ke halaman index (beranda)
-  header("Location: index.php");
-  exit(); // Penting untuk hentikan eksekusi script setelah redirect
+  header('Location: ../../index.php');
+  exit();
 }
 
 // Koneksi ke database

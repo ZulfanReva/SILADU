@@ -31,25 +31,23 @@ CREATE TABLE `pengaduan_alat_ketahananpangan` (
   `id_pengaduan` int(11) NOT NULL,
   `id_user` int(11) NOT NULL,
   `jenis_alat` varchar(100) NOT NULL,
-  `waktu_kerusakan` date NOT NULL,
   `penyebab_kerusakan` varchar(150) NOT NULL,
   `permintaan` enum('Perbaikan','Ganti Baru') NOT NULL,
   `path_gambar` varchar(255) NOT NULL,
-  `stts_pengaduan` enum('Pending','Disetujui','Ditolak') NOT NULL,
-  `tgl_pengaduan` date NOT NULL,
-  `tgl_selesai` date NOT NULL,
-  `keterangan_petugas` varchar(200) NOT NULL,
-  `catatan_admin` varchar(225) NOT NULL
+  `stts_pengaduan` enum('Diproses','Direview','Diterima', 'Ditolak') NOT NULL,
+  `tgl_pengaduan` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `pengaduan_alat_ketahananpangan`
 --
 
-INSERT INTO `pengaduan_alat_ketahananpangan` (`id_pengaduan`, `id_user`, `jenis_alat`, `waktu_kerusakan`, `penyebab_kerusakan`, `permintaan`, `path_gambar`, `stts_pengaduan`, `tgl_pengaduan`, `tgl_selesai`, `keterangan_petugas`, `catatan_admin`) VALUES
-(9, 4, 'Cold Storage', '2025-02-14', 'ero', 'Ganti Baru', '1739623109_foto cangkul patah.jpg', 'Disetujui', '2025-02-15', '2025-02-15', '1739623276_petugas_foto cangkul patah.jpg', 'foto alat sudah diperbaiki'),
-(10, 4, 'Alat Penggiling Padi', '2025-02-12', 'taktau', 'Perbaikan', '1739623146_alat penggiling padi.jpg', 'Ditolak', '2025-02-15', '2025-02-15', '1739623336_petugas_alat penggiling padi.jpg', 'ditolak'),
-(11, 4, 'Alat Penggiling Padi', '2025-02-12', 'tau', 'Ganti Baru', '1739623170_alat penggiling padi.jpg', 'Disetujui', '2025-02-15', '0000-00-00', '1739623600_petugas_alat penggiling padi.jpg', 'disetujui');
+INSERT INTO `pengaduan_alat_ketahananpangan` 
+(`id_pengaduan`, `id_user`, `jenis_alat`, `penyebab_kerusakan`, `permintaan`, `path_gambar`, `stts_pengaduan`, `tgl_pengaduan`)
+VALUES
+(1, 1, 'Cold Storage', 'ero', 'Ganti Baru', '1739623109_foto cangkul patah.jpg', 'Diterima', '2025-02-15'),
+(2, 2, 'Alat Penggiling Padi', 'taktau', 'Perbaikan', '1739623146_alat penggiling padi.jpg', 'Ditolak', '2025-02-15'),
+(3, 3, 'Alat Penggiling Padi', 'tau', 'Ganti Baru', '1739623170_alat penggiling padi.jpg', 'Diterima', '2025-02-15');
 
 -- --------------------------------------------------------
 
@@ -61,28 +59,22 @@ CREATE TABLE `pengaduan_alat_perikanan` (
   `id_pengaduan` int(11) NOT NULL,
   `id_user` int(11) NOT NULL,
   `jenis_alat` varchar(100) NOT NULL,
-  `waktu_kerusakan` date NOT NULL,
   `penyebab_kerusakan` varchar(150) NOT NULL,
   `permintaan` enum('Perbaikan','Ganti Baru') NOT NULL,
-  `path_gambar` varchar(255) NOT NULL,
-  `stts_pengaduan` enum('Pending','Disetujui','Ditolak') NOT NULL,
   `tgl_pengaduan` date NOT NULL,
-  `tgl_selesai` date NOT NULL,
-  `keterangan_petugas` varchar(200) NOT NULL,
-  `catatan_admin` varchar(225) NOT NULL
+  `path_gambar` varchar(255) NOT NULL,
+  `stts_pengaduan` enum('Diproses','Direview','Diterima', 'Ditolak') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `pengaduan_alat_perikanan`
 --
 
-INSERT INTO `pengaduan_alat_perikanan` (`id_pengaduan`, `id_user`, `jenis_alat`, `waktu_kerusakan`, `penyebab_kerusakan`, `permintaan`, `path_gambar`, `stts_pengaduan`, `tgl_pengaduan`, `tgl_selesai`, `keterangan_petugas`, `catatan_admin`) VALUES
-(6, 4, 'Jaring Pukat (Trawl)', '2025-02-14', 'teshy', 'Ganti Baru', '1739619552_foto kerusakan jaring gill net.jpg', 'Disetujui', '2025-02-15', '2025-02-27', '1739615439_petugas_download.jpg', 'foto alat sudah diperbaiki'),
-(9, 4, 'Kincir Air', '2025-02-13', 'gatau', 'Perbaikan', '1739619588_kincir air.jpeg', 'Ditolak', '2025-02-15', '2025-02-15', '1739620873_petugas_kincir air.jpeg', 'alat tidak bisa diperbaiki'),
-(10, 4, 'Jaring Pukat (Trawl)', '2025-02-13', 'sobek', 'Perbaikan', '1739619617_9c0b7e8fa298bb3ff5879e263a3e9606.png', 'Ditolak', '2025-02-15', '2025-02-15', '1739620905_petugas_foto kerusakan jaring gill net.jpg', 'gabisa diganti'),
-(11, 4, 'pH Meter dan DO Meter', '2025-02-13', 'entah', 'Ganti Baru', '1739619649_timbangan digital pangan rusak.jpg', 'Disetujui', '2025-02-15', '2025-02-15', '1739620931_petugas_timbangan digital pangan rusak.jpg', 'timbangan sudah diganti baru'),
-(12, 4, 'Kincir Air', '2025-02-13', 'rusak', 'Ganti Baru', '1739677037_kincir air.jpeg', 'Disetujui', '2025-02-16', '2025-02-16', '1739677222_petugas_kincir air.jpeg', 'okeu'),
-(13, 4, 'Jaring Gill Net', '2025-02-17', 'rusakk', 'Perbaikan', '1739762660_foto kerusakan jaring gill net.jpg', 'Disetujui', '2025-02-17', '2025-02-17', '1739762711_petugas_foto kerusakan jaring gill net.jpg', 'sipp');
+INSERT INTO `pengaduan_alat_perikanan` 
+(`id_pengaduan`, `id_user`, `jenis_alat`, `penyebab_kerusakan`, `permintaan`, `tgl_pengaduan`, `path_gambar`, `stts_pengaduan`) VALUES
+(1, 1, 'Jaring Pukat (Trawl)', 'teshy', 'Ganti Baru', '2025-02-15', '1739619552_foto kerusakan jaring gill net.jpg', 'Diterima'),
+(2, 2, 'Kincir Air', 'gatau', 'Perbaikan', '2025-02-15', '1739619588_kincir air.jpeg', 'Ditolak'),
+(3, 3, 'Jaring Pukat (Trawl)', 'sobek', 'Perbaikan', '2025-02-15', '1739619617_9c0b7e8fa298bb3ff5879e263a3e9606.png', 'Ditolak');
 
 -- --------------------------------------------------------
 
@@ -94,25 +86,22 @@ CREATE TABLE `pengaduan_alat_pertanian` (
   `id_pengaduan` int(11) NOT NULL,
   `id_user` int(11) NOT NULL,
   `jenis_alat` varchar(100) NOT NULL,
-  `waktu_kerusakan` date NOT NULL,
   `penyebab_kerusakan` varchar(150) NOT NULL,
   `permintaan` enum('Perbaikan','Ganti Baru') NOT NULL,
-  `path_gambar` varchar(255) NOT NULL,
-  `stts_pengaduan` enum('Pending','Disetujui','Ditolak') NOT NULL,
   `tgl_pengaduan` date NOT NULL,
-  `tgl_selesai` date NOT NULL,
-  `keterangan_petugas` varchar(200) NOT NULL,
-  `catatan_admin` varchar(225) NOT NULL
+  `path_gambar` varchar(255) NOT NULL,
+  `stts_pengaduan` enum('Diproses','Direview','Diterima', 'Ditolak') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `pengaduan_alat_pertanian`
 --
 
-INSERT INTO `pengaduan_alat_pertanian` (`id_pengaduan`, `id_user`, `jenis_alat`, `waktu_kerusakan`, `penyebab_kerusakan`, `permintaan`, `path_gambar`, `stts_pengaduan`, `tgl_pengaduan`, `tgl_selesai`, `keterangan_petugas`, `catatan_admin`) VALUES
-(7, 4, 'Cangkul', '2025-02-15', 'ek', 'Perbaikan', '1739613655_download.jpg', 'Disetujui', '2025-02-16', '2025-02-15', '1739615572_petugas_download.jpg', 'cangkul sudah diperbaiki'),
-(8, 4, 'Cangkul', '2025-02-13', 'patah', 'Ganti Baru', '1739619718_foto cangkul patah.jpg', 'Disetujui', '2025-02-15', '2025-02-15', '1739620724_petugas_foto cangkul patah.jpg', 'sudah diganti baru'),
-(9, 4, 'Bajak Singkal', '2025-02-11', 'kelepas', 'Perbaikan', '1739619746_bajak singkal.jpg', 'Ditolak', '2025-02-15', '2025-02-14', '1739620747_petugas_bajak singkal.jpg', 'tolak');
+INSERT INTO `pengaduan_alat_pertanian` 
+(`id_pengaduan`, `id_user`, `jenis_alat`, `penyebab_kerusakan`, `permintaan`, `tgl_pengaduan`, `path_gambar`, `stts_pengaduan`) VALUES
+(1, 1, 'Cangkul', 'ek', 'Perbaikan', '2025-02-16', '1739613655_download.jpg', 'Diterima'),
+(2, 2, 'Cangkul', 'patah', 'Ganti Baru', '2025-02-15', '1739619718_foto cangkul patah.jpg', 'Diterima'),
+(3, 3, 'Bajak Singkal', 'kelepas', 'Perbaikan', '2025-02-15', '1739619746_bajak singkal.jpg', 'Ditolak');
 
 -- --------------------------------------------------------
 
@@ -120,22 +109,34 @@ INSERT INTO `pengaduan_alat_pertanian` (`id_pengaduan`, `id_user`, `jenis_alat`,
 -- Struktur dari tabel `pengaduan_hama_penyakit_tanaman`
 --
 
-CREATE TABLE pengaduan_hama_penyakit_tanaman (
-  id_pengaduan int(11) NOT NULL,
-  id_user int(11) NOT NULL,
-  jenis_tanaman enum('Padi','Cabai','Tomat','Terong','Bayam','Kangkung') NOT NULL,
-  jenis_hama_penyakit enum('Hama Wereng Hijau,Penyakit Tungro','Hama Kutu Daun, Penyakit Antraknosa','Hama Lalat Buah, Penyakit Layu Bakteri','Hama Trips, Penyakit Kutu Kebul','Hama Ulat Grayak, Penyakit Bercak Daun','Hama Belalang, Penyakit Layu Fusarium') NOT NULL,
-  alamat_pengadu varchar(255) NOT NULL,
-  tgl_pengaduan date NOT NULL,
-  status enum('Diproses','Direview','Diterima', 'Ditolak') NOT NULL
+CREATE TABLE `pengaduan_hama_penyakit_tanaman` (
+  `id_pengaduan` INT(11) NOT NULL,
+  `id_user` INT(11) NOT NULL,
+  `jenis_tanaman` ENUM('Padi','Cabai','Tomat','Terong','Bayam','Kangkung') NOT NULL,
+  `jenis_hama_penyakit` ENUM(
+    'Hama Wereng Hijau & Penyakit Tungro',
+    'Hama Kutu Daun & Penyakit Antraknosa',
+    'Hama Lalat Buah & Penyakit Layu Bakteri',
+    'Hama Trips & Penyakit Kutu Kebul',
+    'Hama Ulat Grayak & Penyakit Bercak Daun',
+    'Hama Belalang & Penyakit Layu Fusarium'
+  ) NOT NULL,
+  `alamat_pengadu` VARCHAR(255) NOT NULL,
+  `tgl_pengaduan` DATE NOT NULL,
+  `status` ENUM('Diproses','Direview','Diterima','Ditolak') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 --
 -- Dumping data untuk tabel `pengaduan_hama_penyakit_tanaman`
 --
 
-INSERT INTO `pengaduan_hama_penyakit_tanaman` (`id_pengaduan`, `id_user`, `jenis_tanaman`, `jenis_hama_penyakit`, `alamat_pengadu`, `tgl_pengaduan`, `status`) VALUES
-(1, 4, 'Cabai', '', 'banjar raya', '2025-05-29', 'Menunggu');
+INSERT INTO `pengaduan_hama_penyakit_tanaman` 
+(`id_pengaduan`, `id_user`, `jenis_tanaman`, `jenis_hama_penyakit`, `alamat_pengadu`, `tgl_pengaduan`, `status`) VALUES
+(1, 1, 'Padi', 'Hama Wereng Hijau & Penyakit Tungro', 'Jl. Sawah Raya No. 12', '2025-02-15', 'Diproses'),
+(2, 2, 'Cabai', 'Hama Kutu Daun & Penyakit Antraknosa', 'Desa Tani Makmur', '2025-02-16', 'Diterima'),
+(3, 3, 'Tomat', 'Hama Lalat Buah & Penyakit Layu Bakteri', 'RT 03 RW 01 Kampung Sayur', '2025-02-17', 'Ditolak');
+
 
 -- --------------------------------------------------------
 
@@ -150,8 +151,16 @@ CREATE TABLE `pengaduan_kesehatan_ternak` (
   `gejala` varchar(255) NOT NULL,
   `alamat_ternak` varchar(255) NOT NULL,
   `tgl_pengaduan` date NOT NULL,
-  `status` enum('Menunggu','Diproses','Selesai') NOT NULL
+  `status` enum('Diproses','Direview','Diterima', 'Ditolak') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `pengaduan_kesehatan_ternak` 
+(`id_pengaduan`, `id_user`, `jenis_ternak`, `gejala`, `alamat_ternak`, `tgl_pengaduan`, `status`) 
+VALUES
+(1, 1, 'Sapi', 'Demam tinggi, tidak mau makan', 'Desa Sukamaju, Kec. Tani Maju', '2025-02-15', 'Diproses'),
+(2, 2, 'Kambing', 'Luka di kaki, jalan pincang', 'Jl. Peternakan No. 12, Desa Suka', '2025-02-15', 'Direview'),
+(3, 3, 'Ayam', 'Nafas tersengal, bulu rontok', 'RT 03 RW 01, Kampung Ayam', '2025-02-16', 'Diterima');
+
 
 -- --------------------------------------------------------
 
@@ -166,20 +175,18 @@ CREATE TABLE `pengajuan_izin` (
   `dokumen` text NOT NULL,
   `kontak` varchar(100) NOT NULL,
   `tgl_pengajuan` date NOT NULL,
-  `status_pemohon` enum('Menunggu','Diproses','Disetujui','Ditolak') NOT NULL,
-  `catatan_admin` text NOT NULL
+  `status_pemohon` enum('Diproses','Direview','Diterima', 'Ditolak') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `pengajuan_izin`
 --
 
-INSERT INTO `pengajuan_izin` (`id_pengajuan`, `id_user`, `jenis_izin`, `dokumen`, `kontak`, `tgl_pengajuan`, `status_pemohon`, `catatan_admin`) VALUES
-(7, 4, 'Izin Usaha Budidaya Tanaman Pangan dan Hortikultura', '1739620147_1739605476_1739392335_kosong.pdf', '1213dfd', '2025-02-15', 'Disetujui', 'diterima'),
-(8, 4, 'Izin Usaha Budidaya Tanaman Pangan dan Hortikultura', '1739620070_1739605476_1739392335_kosong.pdf', 'wwdce', '2025-02-15', 'Disetujui', 'okeh'),
-(9, 4, 'Izin Usaha Budidaya Tanaman Pangan dan Hortikultura', '1739620093_1739605476_1739392335_kosong.pdf', '32', '2025-02-15', 'Ditolak', 'tolak'),
-(10, 4, 'Izin Usaha Perikanan', '1739620116_1739605476_1739392335_kosong.pdf', 's', '2025-02-15', 'Ditolak', 'shapp'),
-(11, 4, 'Izin Usaha Perkebunan', '1739676615_1739605476_1739392335_kosong.pdf', '123', '2025-02-16', 'Disetujui', 'okey');
+INSERT INTO `pengajuan_izin` 
+(`id_pengajuan`, `id_user`, `jenis_izin`, `dokumen`, `kontak`, `tgl_pengajuan`, `status_pemohon`) VALUES
+(1, 1, 'Izin Usaha Budidaya Tanaman Pangan dan Hortikultura', '1739620147_1739605476_1739392335_kosong.pdf', '1213dfd', '2025-02-15', 'Diterima'),
+(2, 2, 'Izin Usaha Perikanan', '1739620116_1739605476_1739392335_kosong.pdf', 's', '2025-02-15', 'Ditolak'),
+(3, 3, 'Izin Usaha Perkebunan', '1739676615_1739605476_1739392335_kosong.pdf', '123', '2025-02-16', 'Diterima');
 
 -- --------------------------------------------------------
 
@@ -205,13 +212,12 @@ CREATE TABLE `permohonan_bantuan` (
 -- Dumping data untuk tabel `permohonan_bantuan`
 --
 
-INSERT INTO `permohonan_bantuan` (`id_bantuan`, `id_user`, `nik`, `alamat`, `no_telp`, `jenis_bantuan`, `deskripsi_bantuan`, `status_pemohon`, `tgl_pengajuan`, `tgl_persetujuan`, `catatan_admin`) VALUES
-(7, 4, '123', 'qw', 'qw', 'Pangan', 'qwft', 'Disetujui', '2025-02-15', '2025-02-15', 'setuju'),
-(8, 4, '123', 'ss', '123', 'Pangan', 'ss', 'Ditolak', '2025-02-15', '2025-02-15', 'tolak'),
-(9, 4, '123', 'jl semangat', '082345719812', 'Pertanian', 'minta pupuk', 'Ditolak', '2025-02-15', '2025-02-15', 'habis'),
-(10, 4, '123', 'jl tau', '082345719812', 'Perikanan', 'bibit ikan', 'Disetujui', '2025-02-15', '2025-02-15', 'shapp'),
-(11, 4, '123', 'jlder', '082345719812', 'Perikanan', 'bibit ikan nila', 'Disetujui', '2025-02-15', '2025-02-15', 'setuju'),
-(12, 4, '123', 'bgh', '123', 'Perikanan', 'barang ja', 'Ditolak', '2025-02-16', '2025-02-16', 'tolak');
+INSERT INTO `permohonan_bantuan` 
+(`id_bantuan`, `id_user`, `nik`, `alamat`, `no_telp`, `jenis_bantuan`, `deskripsi_bantuan`, `status_pemohon`, `tgl_pengajuan`, `tgl_persetujuan`, `catatan_admin`) VALUES
+(1, 1, '3275012301123456', 'Jl. Merdeka No. 10, Bandung', '081234567890', 'Pangan', 'Permohonan bantuan sembako untuk keluarga kurang mampu.', 'Disetujui', '2025-01-10', '2025-01-15', 'Disetujui setelah verifikasi data.'),
+(2, 2, '3275021401987654', 'Desa Sukamaju, Cianjur', '082345678901', 'Pertanian', 'Butuh bantuan alat semprot hama dan bibit padi.', 'Diproses', '2025-02-01', '2025-02-10', 'Masih dalam tahap verifikasi lapangan.'),
+(3, 3, '3275030703891234', 'Kp. Nelayan, Indramayu', '083456789012', 'Perikanan', 'Memohon bantuan peralatan jaring ikan.', 'Ditolak', '2025-03-05', '2025-03-12', 'Ditolak karena tidak memenuhi kriteria program.');
+
 
 -- --------------------------------------------------------
 
@@ -225,7 +231,7 @@ CREATE TABLE `permohonan_uji_tanaman` (
   `jenis_tanaman` varchar(255) NOT NULL,
   `alamat_pemohon` varchar(255) NOT NULL,
   `tgl_permohonan` date NOT NULL,
-  `status` enum('Diajukan','Diverifikasi','Dijadwalkan','Selesai') NOT NULL,
+  `status` enum('Diproses','Direview','Diterima','Ditolak') NOT NULL,
   `tgl_uji` date NOT NULL,
   `hasil_uji` varchar(255) NOT NULL,
   `keterangan_petugas` varchar(255) NOT NULL
@@ -235,8 +241,12 @@ CREATE TABLE `permohonan_uji_tanaman` (
 -- Dumping data untuk tabel `permohonan_uji_tanaman`
 --
 
-INSERT INTO `permohonan_uji_tanaman` (`id_permohonan`, `id_user`, `jenis_tanaman`, `alamat_pemohon`, `tgl_permohonan`, `status`, `tgl_uji`, `hasil_uji`, `keterangan_petugas`) VALUES
-(1, 4, 'cabai', 'gambut', '2025-05-29', 'Diajukan', '0000-00-00', '', '');
+INSERT INTO `permohonan_uji_tanaman` 
+(`id_permohonan`, `id_user`, `jenis_tanaman`, `alamat_pemohon`, `tgl_permohonan`, `status`, `tgl_uji`, `hasil_uji`, `keterangan_petugas`)
+VALUES
+(1, 1, 'Padi Ciherang', 'Desa Mekarsari, Kabupaten Bogor', '2025-02-01', 'Diterima', '2025-02-10', 'Tahan terhadap hama wereng', 'Tanaman layak untuk dikembangkan.'),
+(2, 2, 'Jagung Hibrida', 'Jl. Pertanian No. 12, Garut', '2025-03-05', 'Diproses', '2025-03-12', 'Masih menunggu hasil uji laboratorium', 'Sampel diterima, sedang dianalisis.'),
+(3, 3, 'Kedelai Anjasmoro', 'Kp. Tani, Cirebon', '2025-04-01', 'Ditolak', '2025-04-08', 'Data spesimen tidak valid', 'Permohonan ditolak karena data tidak lengkap.');
 
 -- --------------------------------------------------------
 
@@ -251,17 +261,20 @@ CREATE TABLE `permohonan_vaksinasi_hewan` (
   `jumlah_ternak` varchar(255) NOT NULL,
   `jenis_vaksin` varchar(255) NOT NULL,
   `alamat_pemohon` varchar(255) NOT NULL,
-  `status` enum('Diajukan','Diverifikasi','Dijadwalkan','Selesai') NOT NULL,
-  `tgl_permohonan` date NOT NULL,
-  `tgl_selesai` date NOT NULL
+  `status` enum('Diproses','Direview','Diterima','Ditolak') NOT NULL,
+  `tgl_permohonan` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `permohonan_vaksinasi_hewan`
 --
 
-INSERT INTO `permohonan_vaksinasi_hewan` (`id_permohonan`, `id_user`, `jenis_ternak`, `jumlah_ternak`, `jenis_vaksin`, `alamat_pemohon`, `status`, `tgl_permohonan`, `tgl_selesai`) VALUES
-(1, 4, 'Sapi', '5', 'vaksin PMK', 'gambut', 'Diajukan', '2025-05-29', '0000-00-00');
+INSERT INTO `permohonan_vaksinasi_hewan`
+(`id_permohonan`, `id_user`, `jenis_ternak`, `jumlah_ternak`, `jenis_vaksin`, `alamat_pemohon`, `status`, `tgl_permohonan`)
+VALUES
+(1, 1, 'Sapi', '10 ekor', 'Vaksin PMK', 'Desa Ternak Sejahtera, Kabupaten Sumedang', 'Diterima', '2025-01-20'),
+(2, 2, 'Ayam', '200 ekor', 'Vaksin ND (Newcastle Disease)', 'Kampung Ayam Jaya, Kabupaten Bandung', 'Diproses', '2025-02-10'),
+(3, 3, 'Kambing', '15 ekor', 'Vaksin Clostridial', 'Jl. Peternakan No. 5, Garut', 'Ditolak', '2025-03-01');
 
 -- --------------------------------------------------------
 
@@ -282,12 +295,10 @@ CREATE TABLE `survey_kepuasan` (
 --
 
 INSERT INTO `survey_kepuasan` (`id_survey`, `id_user`, `tgl_pengisian`, `skor_penilaian`, `komentar`) VALUES
-(1, 4, '2025-02-14', '3', 'h'),
-(2, 4, '2025-02-15', '5', 'mantapppp'),
-(3, 4, '2025-02-15', '5', 'sngt  membantu'),
-(4, 4, '2025-02-15', '4', 'pelayanan baik'),
-(5, 4, '2025-02-17', '5', 'sangat bagus'),
-(6, 9, '2025-02-17', '5', 'okeh');
+(1, 1, '2025-02-14', '3', 'h'),
+(2, 2, '2025-02-15', '5', 'mantapppp'),
+(3, 3, '2025-02-15', '5', 'sngt  membantu'),
+(4, 4, '2025-02-15', '4', 'pelayanan baik');
 
 -- --------------------------------------------------------
 
@@ -296,31 +307,36 @@ INSERT INTO `survey_kepuasan` (`id_survey`, `id_user`, `tgl_pengisian`, `skor_pe
 --
 
 CREATE TABLE `user` (
-  `id_user` int(11) NOT NULL,
+  `id_user` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(20) NOT NULL,
   `password` varchar(255) NOT NULL,
   `nama` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
   `alamat` text NOT NULL,
   `tlp` varchar(15) NOT NULL,
-  `level` enum('warga','admin','petugas', 'kepala_dinas') NOT NULL,
-  `nip` varchar(18) NOT NULL
+  `level` enum('warga','admin','petugas','kepala_dinas') NOT NULL,
+  `nip` varchar(18) DEFAULT NULL,
+  PRIMARY KEY (`id_user`),
+  UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 --
 -- Dumping data untuk tabel `user`
 --
+-- Password default untuk semua user: 12345678
+-- Hash dihasilkan dari: password_hash("12345678", PASSWORD_DEFAULT)
+-- Kamu bisa pakai hash ini secara langsung:
 
-INSERT INTO `user` (`id_user`, `username`, `password`, `nama`, `email`, `alamat`, `tlp`, `level`, `nip`) VALUES
-(1, '3561234567894560', '0d337de5b17c8e47a868cecfcdc7c0fa', 'Faris Yahya', 'faris@gmail.com', 'Perum Citra Land B-2 ', '089765893443', 'warga', ''),
-(2, '54321', '0192023a7bbd73250516f069df18b500', 'Administrator1', 'admin1@gmail.com', 'disini', '087675144322', 'admin', ''),
-(3, 'administrator001', '21232f297a57a5a743894a0e4a801fc3', 'Administrator1', 'admin1@gmail.com', 'disini', '-', 'admin', ''),
-(4, 'anjay', 'de12f5798f86bdcc5c759a645e913e4c', 'hilda ', 'hildanurfadilah0610@gmail.com', 'jl.handil bakti permai', '087867556456', 'warga', ''),
-(5, 'hilda', 'ad31b478525413f0b1b1d8bf0aebeb7c', 'hilda nurfadilah', 'hildanurfadilah0610@gmail.com', 'jl.handil bakti permai', '087867556456', 'admin', ''),
-(6, 'petugas', 'afb91ef692fd08c445e8cb1bab2ccf9c', 'rahmi', 'rahmi123@gmail.com', 'jl.purnas', '083114629451', 'petugas', '112212123454657898'),
-(7, 'petugas1', '570c396b3fc856eceb8aa7357f32af1a', 'Siti Aminah', 'sitiaminah@gmail.com', 'Jalan Nuri no. 9', '087678987678', 'petugas', '356418279057438920'),
-(8, 'petugas2', '6fb35e77d7c816fd0ee7c305e77a1156', 'Yayan', 'yayan@gmail.com', 'Disini', '0123', 'petugas', '123456789098765432'),
-(9, 'warga1', 'de6e8d19a4c315b73b6784f1f69471c1', 'Warga sini', 'warga@gmail.con', 'disini', '0123', 'warga', '');
+-- $2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa
+
+INSERT INTO `user` 
+(`id_user`, `username`, `password`, `nama`, `email`, `alamat`, `tlp`, `level`, `nip`)
+VALUES
+(1, 'wargates', '$2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa', 'Andi Warga', 'andi@example.com', 'Jl. Warga Sejahtera No.1', '081234567890', 'warga', NULL),
+(2, 'petugastes', '$2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa', 'Budi Petugas', 'budi@example.com', 'Kantor Pertanian Kab. A', '082345678901', 'petugas', '198765432109876543'),
+(3, 'kepaladinastes', '$2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa', 'Citra Kadis', 'citra@example.com', 'Dinas Pertanian Provinsi', '083456789012', 'kepala_dinas', '123456789012345678'),
+(4, 'admintes', '$2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa', 'Dewi Admin', 'dewi@example.com', 'Komplek Pemerintahan', '084567890123', 'admin', 'F9J8H7K');
 
 --
 -- Indexes for dumped tables
@@ -397,10 +413,11 @@ ALTER TABLE `survey_kepuasan`
   ADD KEY `id_user` (`id_user`);
 
 --
--- Indeks untuk tabel `user`
+-- Indeks untuk tabel `user` -> sudah ada didalam bagian create tablenya
 --
-ALTER TABLE `user`
-  ADD PRIMARY KEY (`id_user`);
+-- ALTER TABLE `user`
+--   ADD PRIMARY KEY (`id_user`);
+ALTER TABLE `user` AUTO_INCREMENT = 5;
 
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang

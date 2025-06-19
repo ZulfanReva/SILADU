@@ -3,8 +3,8 @@ session_start();
 
 // Cek apakah user sudah login
 if (!isset($_SESSION['id_user'])) {
-    header("Location: index.php");
-    exit;
+    header('Location: ../../index.php');
+    exit();
 }
 
 // Inisialisasi koneksi database
@@ -30,6 +30,23 @@ if ($result->num_rows > 0) {
     $nama = "Pengguna";
     $level = "Tidak Diketahui";
 }
+
+// Ambil data pengaduan dari tabel pengaduan_hama_penyakit_tanaman berdasarkan id_user
+$sql_pengaduan = "SELECT id_pengaduan, jenis_tanaman, jenis_hama_penyakit, alamat_pengadu, tgl_pengaduan, status 
+                  FROM pengaduan_hama_penyakit_tanaman 
+                  WHERE id_user = ?";
+$stmt_pengaduan = $conn->prepare($sql_pengaduan);
+$stmt_pengaduan->bind_param("i", $id_user);
+$stmt_pengaduan->execute();
+$result_pengaduan = $stmt_pengaduan->get_result();
+$pengaduan_list = [];
+
+if ($result_pengaduan->num_rows > 0) {
+    while ($row_pengaduan = $result_pengaduan->fetch_assoc()) {
+        $pengaduan_list[] = $row_pengaduan;
+    }
+}
+$stmt_pengaduan->close();
 
 // Inisialisasi variabel
 $jenis_tanaman = "";
@@ -128,75 +145,65 @@ $conn->close();
                         </div>
                         <div class="card-body px-0 pt-0 pb-2">
                             <div class="table-responsive p-0">
-                                <table class="table align-items-center mb-0" style="table-layout: fixed; width: 100%;">
+                                <table class="table align-items-center mb-0">
                                     <thead>
-                                        <tr class="align-middle text-center">
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 5%;">No</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" style="width: 13%;">Nama<br>Pemohon</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" style="width: 10%;">Jenis<br>Tanaman</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" style="width: 12%;">Jenis Hama/<br>Penyakit</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" style="width: 15%;">Alamat<br>Pengadu</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 10%;">Tanggal<br>Pengaduan</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 10%;">Status<br>Pengaduan</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" style="width: 10%;">Validasi<br>Petugas</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2" style="width: 10%;">Validasi<br>Kepala Dinas</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 17%;">Aksi</th>
+                                        <tr>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="5%">No.</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="10%">Nama<br>Pemohon</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="10%">Jenis<br>Tanaman</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="15%">Jenis<br>Hama/Penyakit</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="15%">Alamat</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="10%">Tanggal</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="10%">Status</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="10%">Validasi<br>Petugas</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="10%">Validasi<br>Kepala</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" width="5%">Aksi</th>
                                         </tr>
                                     </thead>
-
                                     <tbody>
-                                        <tr class="align-middle text-center">
-                                            <td>
-                                                <div class="d-flex px-3 py-1">
-                                                    <div class="d-flex flex-column justify-content-center">
-                                                        <p class="text-xs font-weight-bold mb-0 ">1</p>
-                                                    </div>
-                                                </div>
+                                        <tr>
+                                            <td class="text-center">
+                                                <p class="text-xs font-weight-bold mb-0">1</p>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <p class="text-xs font-weight-bold mb-0">Ari Pratama</p>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <p class="text-xs font-weight-bold mb-0">Padi</p>
                                             </td>
-                                            <td>
+                                            <td class="text-center">
                                                 <p class="text-xs font-weight-bold mb-0">Wereng</p>
                                             </td>
-                                            <td>
-                                                <p class="text-xs font-weight-bold mb-0" style="word-wrap: break-word;">Jl. Kenanga No. 10</p>
+                                            <td class="text-center">
+                                                <p class="text-xs font-weight-bold mb-0">Jl. Kenanga No. 10</p>
                                             </td>
-                                            <td class="align-middle text-center">
-                                                <span class="text-secondary text-xs font-weight-bold">2025-06-18</span>
+                                            <td class="text-center">
+                                                <p class="text-xs font-weight-bold mb-0">2025-06-18</p>
                                             </td>
-                                            <td class="align-middle text-center text-sm status">
+                                            <td class="text-center status">
                                                 <span class="badge badge-sm bg-gradient-secondary">Diproses</span>
                                             </td>
-                                            <td class="align-middle col-validasi-petugas">
-                                                <select class="form-control validasi-select form-control-sm validasi-petugas"
-                                                    onchange="handlePetugasChange(this)" style="width: 80px;">
+                                            <td class="text-center">
+                                                <select class="form-control form-control-sm validasi-petugas mx-auto" onchange="handlePetugasChange(this)" style="width: 80px;">
                                                     <option value="">Pilih</option>
                                                     <option value="ya">Ya</option>
                                                     <option value="tidak">Tidak</option>
                                                 </select>
                                             </td>
-                                            <td class="align-middle col-validasi-kadis">
-                                                <select class="form-control form-control-sm validasi-kadis d-none"
-                                                    onchange="handleKadisChange(this)"
-                                                    style="width: 80px;">
+                                            <td class="text-center">
+                                                <select class="form-control form-control-sm validasi-kadis d-none mx-auto" onchange="handleKadisChange(this)" style="width: 80px;">
                                                     <option value="">Pilih</option>
                                                     <option value="ya">Ya</option>
                                                     <option value="tidak">Tidak</option>
                                                 </select>
                                             </td>
-                                            <td class="align-middle text-center">
-                                                <div class="d-flex justify-content-center align-items-center">
-                                                    <button class="btn btn-sm bg-gradient-info text-white me-2" onclick="handleEdit(this)">
-                                                        <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm bg-gradient-danger text-white" onclick="handleDelete(this)">
-                                                        <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
-                                                    </button>
-                                                </div>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm bg-gradient-info text-white me-2" onclick="handleEdit(this)">
+                                                    <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
+                                                </button>
+                                                <button class="btn btn-sm bg-gradient-danger text-white" onclick="handleDelete(this)">
+                                                    <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     </tbody>

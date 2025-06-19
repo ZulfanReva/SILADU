@@ -10,8 +10,8 @@ $email    = $_POST['email'] ?? '';
 $alamat   = $_POST['alamat'] ?? '';
 $tlp      = $_POST['tlp'] ?? '';
 $level    = $_POST['level'] ?? '';
-$nip      = $_POST['nip'] ?? '';
-$kode     = $_POST['kode'] ?? ''; // ambil kode admin
+$nip      = $_POST['nip'] ?? '';   // hanya untuk petugas & kepala dinas
+$kode     = $_POST['kode'] ?? '';  // hanya untuk admin
 
 // Validasi input wajib
 if (!$username || !$password || !$nama || !$email || !$alamat || !$tlp || !$level) {
@@ -20,14 +20,21 @@ if (!$username || !$password || !$nama || !$email || !$alamat || !$tlp || !$leve
 }
 
 // Validasi tambahan berdasarkan level
-if ($level === 'petugas' && (strlen($nip) !== 18 || !ctype_digit($nip))) {
+if (in_array($level, ['petugas', 'kepala_dinas']) && (strlen($nip) !== 18 || !ctype_digit($nip))) {
     header("location:index.php?modal=register&alert=gagal&error=nip");
     exit();
 }
 
-if ($level === 'admin' && !preg_match('/^[F-J0-9]{7}$/', $kode)) {
-    header("location:index.php?modal=register&alert=gagal&error=kode");
-    exit();
+if ($level === 'admin') {
+    if (!preg_match('/^[F-J0-9]{7}$/', $kode)) {
+        header("location:index.php?modal=register&alert=gagal&error=kode");
+        exit();
+    }
+    $nip = $kode; // admin simpan kode di kolom nip
+}
+
+if ($level === 'warga') {
+    $nip = ''; // pastikan nip kosong untuk warga
 }
 
 // Cek apakah username sudah digunakan
@@ -44,11 +51,6 @@ $stmt->close();
 // Hash password
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// Siapkan query sesuai level
-if ($level === 'admin') {
-    $nip = $kode; // simpan kode di kolom nip
-}
-
 // Simpan data ke DB
 $stmt = $koneksi->prepare("INSERT INTO user (username, password, nama, email, alamat, tlp, level, nip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 $stmt->bind_param("ssssssss", $username, $hashed_password, $nama, $email, $alamat, $tlp, $level, $nip);
@@ -59,3 +61,8 @@ if ($stmt->execute()) {
     header("location:index.php?modal=register&alert=gagal&error=db");
 }
 $stmt->close();
+$koneksi->close();
+exit();
+?>
+<?php
+// Catatan: Pastikan koneksi.php sudah benar dan sesuai dengan konfigurasi database Anda.

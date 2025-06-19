@@ -33,8 +33,7 @@
                 width: 50px !important;
                 height: 50px !important;
                 max-width: 50px !important;
-                max-height: 50px !important;
-              " class="object-contain" alt="logo" />
+                max-height: 50px !important;" class="object-contain" alt="logo" />
                 </div>
                 <ul class="flex items-center gap-[30px]">
                     <li>
