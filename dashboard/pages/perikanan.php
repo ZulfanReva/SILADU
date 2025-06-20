@@ -31,9 +31,9 @@ if ($result->num_rows > 0) {
     $level = 'Tidak Diketahui';
 }
 
-// Ambil data pengaduan dari tabel pengaduan_alat_perikanan berdasarkan id_user
-$sql_pengaduan = "SELECT id_pengaduan, jenis_alat, penyebab_kerusakan, permintaan, tgl_pengaduan, path_gambar, stts_pengaduan 
-                  FROM pengaduan_alat_perikanan 
+// Ambil data pengaduan dari tabel permohonan_alat_perikanan berdasarkan id_user
+$sql_pengaduan = "SELECT id_permohonan, jenis_alat, penyebab_kerusakan, permintaan, tgl_permohonan, path_gambar, status 
+                  FROM permohonan_alat_perikanan 
                   WHERE id_user = ?";
 $stmt_pengaduan = $conn->prepare($sql_pengaduan);
 $stmt_pengaduan->bind_param("i", $id_user);
@@ -52,8 +52,8 @@ $stmt_pengaduan->close();
 $jenis_alat = '';
 $penyebab_kerusakan = '';
 $permintaan = '';
-$tgl_pengaduan = date('Y-m-d'); // default hari ini
-$stts_pengaduan = 'Diproses'; // default status
+$tgl_permohonan = date('Y-m-d'); // default hari ini
+$status = 'Diproses'; // default status
 $sukses = '';
 $errors = [];
 
@@ -63,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jenis_alat = $_POST['jenis_alat'];
     $penyebab_kerusakan = trim($_POST['penyebab_kerusakan']);
     $permintaan = $_POST['permintaan'];
-    $tgl_pengaduan = $_POST['tgl_pengaduan'];
-    $stts_pengaduan = 'Diproses'; // Default status
+    $tgl_permohonan = $_POST['tgl_permohonan'];
+    $status = 'Diproses'; // Default status
     $path_gambar = '';
 
     // Validasi input
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($permintaan) || !in_array($permintaan, ['Perbaikan', 'Ganti Baru'])) {
         $errors[] = 'Permintaan harus dipilih (Perbaikan atau Ganti Baru).';
     }
-    if (empty($tgl_pengaduan)) {
+    if (empty($tgl_permohonan)) {
         $errors[] = 'Tanggal pengaduan harus diisi.';
     }
 
@@ -106,14 +106,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Jika tidak ada error, simpan ke database
     if (count($errors) === 0) {
-        $stmt = $conn->prepare('INSERT INTO pengaduan_alat_perikanan (id_user, jenis_alat, penyebab_kerusakan, permintaan, tgl_pengaduan, path_gambar, stts_pengaduan) VALUES (?, ?, ?, ?, ?, ?, ?)');
-        $stmt->bind_param('issssss', $id_user, $jenis_alat, $penyebab_kerusakan, $permintaan, $tgl_pengaduan, $path_gambar, $stts_pengaduan);
+        $stmt = $conn->prepare('INSERT INTO permohonan_alat_perikanan (id_user, jenis_alat, penyebab_kerusakan, permintaan, tgl_permohonan, path_gambar, status) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('issssss', $id_user, $jenis_alat, $penyebab_kerusakan, $permintaan, $tgl_permohonan, $path_gambar, $status);
 
         if ($stmt->execute()) {
             $sukses = 'Pengaduan berhasil dikirim.';
             // Reset input
             $jenis_alat = $penyebab_kerusakan = $permintaan = $path_gambar = '';
-            $tgl_pengaduan = date('Y-m-d');
+            $tgl_permohonan = date('Y-m-d');
         } else {
             $errors[] = 'Gagal menyimpan data: ' . $stmt->error;
         }
@@ -187,87 +187,71 @@ $conn->close();
                                 <table class="table align-items-center mb-0">
                                     <thead>
                                         <tr>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="5%">No.</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="10%">Nama<br>Pemohon</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="10%">Jenis<br>Alat</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="12%">Penyebab<br>Kerusakan</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="13%">Permintaan</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="10%">Tanggal</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="10%">Gambar</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="10%">Status</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="10%">Validasi<br>Petugas</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="10%">Validasi<br>Kepala</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                width="10%">Aksi</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">No.</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Nama<br>Pemohon</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Jenis<br>Alat</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Penyebab<br>Kerusakan</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Permintaan</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Tanggal</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Gambar</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Status</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Validasi<br>Petugas</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Validasi<br>Kepala</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 10px;">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td class="text-center">
+                                        <tr >
+                                            <td class="text-center" style="padding: 10px;">
                                                 <p class="text-xs font-weight-bold mb-0">1</p>
                                             </td>
-                                            <td class="text-center">
+                                            <td class="text-center" style="padding: 10px;">
                                                 <p class="text-xs font-weight-bold mb-0">Ari Pratama</p>
                                             </td>
-                                            <td class="text-center">
-                                                <p class="text-xs font-weight-bold mb-0">Traktor</p>
+                                            <td class="text-center" style="padding: 10px;">
+                                                <p class="text-xs font-weight-bold mb-0">Jaring Pukat</p>
                                             </td>
-                                            <td class="text-center">
-                                                <p class="text-xs font-weight-bold mb-0">Mesin Mati</p>
+                                            <td class="text-center" style="padding: 10px;">
+                                                <p class="text-xs font-weight-bold mb-0">Robek</p>
                                             </td>
-                                            <td class="text-center">
-                                                <p class="text-xs font-weight-bold mb-0">Perbaikan Mesin</p>
+                                            <td class="text-center" style="padding: 10px;">
+                                                <p class="text-xs font-weight-bold mb-0">Ganti Baru</p>
                                             </td>
-                                            <td class="text-center">
+                                            <td class="text-center" style="padding: 10px;">
                                                 <p class="text-xs font-weight-bold mb-0">2025-06-18</p>
                                             </td>
-                                            <td class="text-center">
-                                                <img src="path/to/image.jpg" alt="Gambar Alat"
-                                                    style="width: 50px; height: auto;" onclick="enlargeImage(this)">
+                                            <td class="text-center" style="padding: 10px;">
+                                                <img src="path/to/image.jpg" alt="Gambar Alat" style="width: 50px; height: auto;" onclick="enlargeImage(this)">
                                             </td>
-                                            <td class="text-center status">
+                                            <td class="text-center status" style="padding: 10px;">
                                                 <span class="badge badge-sm bg-gradient-secondary">Diproses</span>
                                             </td>
-                                            <td class="text-center">
-                                                <select class="form-control form-control-sm validasi-petugas mx-auto"
-                                                    onchange="handlePetugasChange(this)" style="width: 80px;">
+                                            <td class="text-center" style="padding: 10px;">
+                                                <select class="form-control form-control-sm validasi-petugas mx-auto" onchange="handlePetugasChange(this)" style="width: 80px;">
                                                     <option value="">Pilih</option>
                                                     <option value="ya">Ya</option>
                                                     <option value="tidak">Tidak</option>
                                                 </select>
                                             </td>
-                                            <td class="text-center">
-                                                <select
-                                                    class="form-control form-control-sm validasi-kadis d-none mx-auto"
-                                                    onchange="handleKadisChange(this)" style="width: 80px;">
+                                            <td class="text-center" style="padding: 10px;">
+                                                <select class="form-control form-control-sm validasi-kadis d-none mx-auto" onchange="handleKadisChange(this)" style="width: 80px;">
                                                     <option value="">Pilih</option>
                                                     <option value="ya">Ya</option>
                                                     <option value="tidak">Tidak</option>
                                                 </select>
                                             </td>
-                                            <td class="text-center">
-                                                <button class="btn btn-sm bg-gradient-info text-white me-2"
-                                                    onclick="handleEdit(this)">
+                                            <td class="text-center" style="padding: 10px;">
+                                                <button class="btn btn-sm bg-gradient-info text-white me-2" onclick="handleEdit(this)">
                                                     <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
                                                 </button>
-                                                <button class="btn btn-sm bg-gradient-danger text-white"
-                                                    onclick="handleDelete(this)">
+                                                <button class="btn btn-sm bg-gradient-danger text-white" onclick="handleDelete(this)">
                                                     <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
+
 
                                 <!-- JavaScript Logic -->
                                 <script>
@@ -347,7 +331,7 @@ $conn->close();
                                         document.getElementById('edit_jenis_alat').value = jenisAlat; // Matches select options
                                         document.getElementById('edit_penyebab_kerusakan').value = penyebabKerusakan;
                                         document.getElementById('permintaan').value = permintaan; // Updated to match new select ID
-                                        document.getElementById('edit_tgl_pengaduan').value = tanggal;
+                                        document.getElementById('edit_tgl_permohonan').value = tanggal;
                                         document.getElementById('edit_gambar').value = ''; // Clear file input (cannot prefill file inputs for security reasons)
 
                                         // Show the modal
@@ -486,7 +470,7 @@ $conn->close();
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Tanggal</label>
-                            <input type="date" name="tgl_pengaduan" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                            <input type="date" name="tgl_permohonan" class="form-control" value="<?= date('Y-m-d') ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Gambar</label>
@@ -559,7 +543,7 @@ $conn->close();
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Tanggal</label>
-                            <input type="date" name="tgl_pengaduan" class="form-control" id="edit_tgl_pengaduan" value="<?= date('Y-m-d') ?>" required>
+                            <input type="date" name="tgl_permohonan" class="form-control" id="edit_tgl_permohonan" value="<?= date('Y-m-d') ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Gambar</label>

@@ -31,95 +31,72 @@ if ($result->num_rows > 0) {
     $level = 'Tidak Diketahui';
 }
 
-// Ambil data permohonan dari tabel permohonan_alat_pertanian berdasarkan id_user
-$sql_permohonan = "SELECT id_permohonan, jenis_alat, penyebab_kerusakan, permintaan, tgl_permohonan, path_gambar, status 
-                  FROM permohonan_alat_pertanian 
-                  WHERE id_user = ?";
-$stmt_permohonan = $conn->prepare($sql_permohonan);
-$stmt_permohonan->bind_param("i", $id_user);
-$stmt_permohonan->execute();
-$result_permohonan = $stmt_permohonan->get_result();
-$permohonan_list = [];
+// Ambil data permohonan bantuan
+$sql_bantuan = "SELECT id_bantuan, nik, alamat, no_telp, jenis_bantuan, deskripsi_bantuan, status_pemohon, tgl_permohonan 
+                FROM permohonan_bantuan 
+                WHERE id_user = ?";
+$stmt_bantuan = $conn->prepare($sql_bantuan);
+$stmt_bantuan->bind_param("i", $id_user);
+$stmt_bantuan->execute();
+$result_bantuan = $stmt_bantuan->get_result();
 
-if ($result_permohonan->num_rows > 0) {
-    while ($row_permohonan = $result_permohonan->fetch_assoc()) {
-        $permohonan_list[] = $row_permohonan;
-    }
+$bantuan_list = [];
+while ($row_bantuan = $result_bantuan->fetch_assoc()) {
+    $bantuan_list[] = $row_bantuan;
 }
-$stmt_permohonan->close();
+$stmt_bantuan->close();
 
 // Inisialisasi variabel
-$jenis_alat = '';
-$penyebab_kerusakan = '';
-$permintaan = '';
-$tgl_permohonan = date('Y-m-d'); // default hari ini
-$status = 'Diproses'; // default status
+$nik = '';
+$alamat = '';
+$no_telp = '';
+$jenis_bantuan = '';
+$deskripsi_bantuan = '';
+$tgl_permohonan = date('Y-m-d');
+$status_pemohon = 'Diproses';
 $sukses = '';
 $errors = [];
 
-// Handle form submit
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id_user = $_SESSION['id_user'];
-    $jenis_alat = $_POST['jenis_alat'];
-    $penyebab_kerusakan = trim($_POST['penyebab_kerusakan']);
-    $permintaan = $_POST['permintaan'];
-    $tgl_permohonan = $_POST['tgl_permohonan'];
-    $status = 'Diproses'; // Default status
-    $path_gambar = '';
+// Handle submit form
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nik = trim($_POST['nik'] ?? '');
+    $alamat = trim($_POST['alamat'] ?? '');
+    $no_telp = trim($_POST['no_telp'] ?? '');
+    $jenis_bantuan = $_POST['jenis_bantuan'] ?? '';
+    $deskripsi_bantuan = trim($_POST['deskripsi_bantuan'] ?? '');
+    $tgl_permohonan = $_POST['tgl_permohonan'] ?? date('Y-m-d');
 
-    // Validasi input
-    $errors = [];
-    if (empty($jenis_alat)) {
-        $errors[] = 'Jenis alat harus dipilih.';
+    // Validasi
+    if (empty($nik) || strlen($nik) !== 16 || !ctype_digit($nik)) $errors[] = 'NIK harus 16 digit angka.';
+    if (empty($alamat)) $errors[] = 'Alamat wajib diisi.';
+    if (empty($no_telp)) $errors[] = 'Nomor telepon wajib diisi.';
+    if (!in_array($jenis_bantuan, ['Pangan', 'Pertanian', 'Perikanan', 'UMKM'])) {
+        $errors[] = 'Jenis bantuan tidak valid.';
     }
-    if (empty($penyebab_kerusakan)) {
-        $errors[] = 'Penyebab kerusakan harus diisi.';
-    }
-    if (empty($permintaan) || !in_array($permintaan, ['Perbaikan', 'Ganti Baru'])) {
-        $errors[] = 'Permintaan harus dipilih (Perbaikan atau Ganti Baru).';
-    }
-    if (empty($tgl_permohonan)) {
-        $errors[] = 'Tanggal permohonan harus diisi.';
-    }
+    if (empty($deskripsi_bantuan)) $errors[] = 'Deskripsi bantuan wajib diisi.';
+    if (empty($tgl_permohonan)) $errors[] = 'Tanggal permohonan wajib diisi.';
 
-    // Validasi dan proses upload gambar
-    if (!empty($_FILES['gambar']['name'])) {
-        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
-        $file_extension = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
-        if (!in_array($file_extension, $allowed_extensions)) {
-            $errors[] = 'File gambar harus berformat JPG, JPEG, PNG, atau GIF.';
-        } else {
-            $upload_dir = 'uploads/permohonan/';
-            if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, 0755, true);
-            }
-            $file_name = uniqid() . '.' . $file_extension;
-            $path_gambar = $upload_dir . $file_name;
-
-            if (!move_uploaded_file($_FILES['gambar']['tmp_name'], $path_gambar)) {
-                $errors[] = 'Gagal mengupload gambar.';
-            }
-        }
-    } else {
-        $errors[] = 'Gambar harus diupload.';
-    }
-
-    // Jika tidak ada error, simpan ke database
+    // Simpan ke database
     if (count($errors) === 0) {
-        $stmt = $conn->prepare('INSERT INTO permohonan_alat_pertanian (id_user, jenis_alat, penyebab_kerusakan, permintaan, tgl_permohonan, path_gambar, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-        $stmt->bind_param('isssssss', $id_user, $jenis_alat, $penyebab_kerusakan, $permintaan, $tgl_permohonan, $path_gambar, $status);
+        $stmt = $conn->prepare("INSERT INTO permohonan_bantuan 
+            (id_user, nik, alamat, no_telp, jenis_bantuan, deskripsi_bantuan, status_pemohon, tgl_permohonan) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt->bind_param("isssssss", $id_user, $nik, $alamat, $no_telp, $jenis_bantuan, $deskripsi_bantuan, $status_pemohon, $tgl_permohonan);
 
         if ($stmt->execute()) {
-            $sukses = 'permohonan berhasil dikirim.';
-            // Reset input
-            $jenis_alat = $penyebab_kerusakan = $permintaan = $path_gambar = '';
+            $sukses = 'Permohonan bantuan berhasil dikirim.';
+            // Reset
+            $nik = $alamat = $no_telp = $jenis_bantuan = $deskripsi_bantuan = '';
             $tgl_permohonan = date('Y-m-d');
         } else {
-            $errors[] = 'Gagal menyimpan data: ' . $stmt->error;
+            $errors[] = 'Gagal menyimpan: ' . $stmt->error;
         }
+
         $stmt->close();
     }
 }
+
 $conn->close();
 ?>
 
@@ -133,7 +110,7 @@ $conn->close();
     <!-- <link rel="icon" type="image/png" href="../assets/img/favicon.png"> -->
     <link rel="icon" href="../../assets/images/logos/favicon.png" type="image/png">
     <title>
-        SILADUMA | Pertanian
+        SILADUMA | Ketahanan Pangan
     </title>
     <!--     Fonts and icons     -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -166,7 +143,7 @@ $conn->close();
                 <div class="col-12">
                     <div class="card mb-4">
                         <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Tabel Permohonan Pertanian</h6>
+                            <h6 class="mb-0">Tabel Ketahanan Pangan</h6>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-sm bg-gradient-green btn-sm mb-0 text-white"
                                     data-bs-toggle="modal" data-bs-target="#">
@@ -187,88 +164,74 @@ $conn->close();
                                 <table class="table align-items-center mb-0">
                                     <thead>
                                         <tr>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">No.</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Nama<br>Pemohon</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Jenis<br>Alat</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Penyebab<br>Kerusakan</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Permintaan</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Tanggal</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Gambar</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Status</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Validasi<br>Petugas</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Validasi<br>Kepala</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                                                style="padding: 10px;">Aksi</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">No.</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Nama<br>Pemohon</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">NIK</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Alamat</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">No. Telp</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Jenis<br>Bantuan</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Deskripsi<br>Bantuan</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Tanggal</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Status</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Validasi<br>Petugas</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Validasi<br>Kepala</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td class="text-center" style="padding: 10px;">
+                                        <tr data-id="1">
+                                            <td class="text-center" style="padding: 9px;">
                                                 <p class="text-xs font-weight-bold mb-0">1</p>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
+                                            <td class="text-center" style="padding: 9px;">
                                                 <p class="text-xs font-weight-bold mb-0">Ari Pratama</p>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
-                                                <p class="text-xs font-weight-bold mb-0">Traktor</p>
+                                            <td class="text-center" style="padding: 9px;">
+                                                <p class="text-xs font-weight-bold mb-0">1234567890123456</p>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
-                                                <p class="text-xs font-weight-bold mb-0">Mesin Mati</p>
+                                            <td class="text-center" style="padding: 9px;">
+                                                <p class="text-xs font-weight-bold mb-0">Jl. Mawar No.1</p>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
-                                                <p class="text-xs font-weight-bold mb-0">Perbaikan Mesin</p>
+                                            <td class="text-center" style="padding: 9px;">
+                                                <p class="text-xs font-weight-bold mb-0">081234567890</p>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
+                                            <td class="text-center" style="padding: 9px;">
+                                                <p class="text-xs font-weight-bold mb-0">Pangan</p>
+                                            </td>
+                                            <td class="text-center" style="padding: 9px;">
+                                                <p class="text-xs font-weight-bold mb-0">Bantuan beras 10kg</p>
+                                            </td>
+                                            <td class="text-center" style="padding: 9px;">
                                                 <p class="text-xs font-weight-bold mb-0">2025-06-18</p>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
-                                                <img src="path/to/image.jpg" alt="Gambar Alat"
-                                                    style="width: 50px; height: auto;" onclick="enlargeImage(this)">
-                                            </td>
-                                            <td class="text-center" style="padding: 10px;"status">
+                                            <td class="text-center status" style="padding: 9px;">
                                                 <span class="badge badge-sm bg-gradient-secondary">Diproses</span>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
-                                                <select class="form-control form-control-sm validasi-petugas mx-auto"
-                                                    onchange="handlePetugasChange(this)" style="width: 80px;">
+                                            <td class="text-center" style="padding: 9px;">
+                                                <select class="form-control form-control-sm validasi-petugas mx-auto" onchange="handlePetugasChange(this)" style="width: 80px;">
                                                     <option value="">Pilih</option>
                                                     <option value="ya">Ya</option>
                                                     <option value="tidak">Tidak</option>
                                                 </select>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
-                                                <select
-                                                    class="form-control form-control-sm validasi-kadis d-none mx-auto"
-                                                    onchange="handleKadisChange(this)" style="width: 80px;">
+                                            <td class="text-center" style="padding: 9px;">
+                                                <select class="form-control form-control-sm validasi-kadis d-none mx-auto" onchange="handleKadisChange(this)" style="width: 80px;">
                                                     <option value="">Pilih</option>
                                                     <option value="ya">Ya</option>
                                                     <option value="tidak">Tidak</option>
                                                 </select>
                                             </td>
-                                            <td class="text-center" style="padding: 10px;">
-                                                <button class="btn btn-sm bg-gradient-info text-white me-2"
-                                                    onclick="handleEdit(this)">
+                                            <td class="text-center" style="padding: 9px;">
+                                                <button class="btn btn-sm bg-gradient-info text-white me-2" onclick="handleEdit(this)">
                                                     <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
                                                 </button>
-                                                <button class="btn btn-sm bg-gradient-danger text-white"
-                                                    onclick="handleDelete(this)">
+                                                <button class="btn btn-sm bg-gradient-danger text-white" onclick="handleDelete(this)">
                                                     <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
-
                                 <!-- JavaScript Logic -->
                                 <script>
                                     const level = document.body.dataset.level;
@@ -335,39 +298,39 @@ $conn->close();
                                         const row = button.closest('tr');
                                         const id = row.dataset.id;
                                         const nama = row.querySelector('td:nth-child(2)').textContent.trim();
-                                        const jenisAlat = row.querySelector('td:nth-child(3)').textContent.trim();
-                                        const waktuKerusakan = row.querySelector('td:nth-child(4)').textContent.trim();
-                                        const penyebabKerusakan = row.querySelector('td:nth-child(5)').textContent.trim();
-                                        const permintaan = row.querySelector('td:nth-child(6)').textContent.trim();
-                                        const tanggal = row.querySelector('td:nth-child(7)').textContent.trim();
+                                        const nik = row.querySelector('td:nth-child(3)').textContent.trim();
+                                        const alamat = row.querySelector('td:nth-child(4)').textContent.trim();
+                                        const telp = row.querySelector('td:nth-child(5)').textContent.trim();
+                                        const jenis = row.querySelector('td:nth-child(6)').textContent.trim();
+                                        const deskripsi = row.querySelector('td:nth-child(7)').textContent.trim();
+                                        const tanggal = row.querySelector('td:nth-child(8)').textContent.trim();
 
-                                        // Populate the edit modal
+                                        // Isi form modal
                                         document.getElementById('edit_id').value = id;
-                                        document.getElementById('edit_jenis_alat').value = jenisAlat;
-                                        document.getElementById('edit_penyebab_kerusakan').value = penyebabKerusakan;
-                                        document.getElementById('edit_permintaan').value = permintaan;
+                                        document.getElementById('edit_nik').value = nik;
+                                        document.getElementById('edit_alamat').value = alamat;
+                                        document.getElementById('edit_telp').value = telp;
+                                        document.getElementById('edit_jenis_bantuan').value = jenis;
+                                        document.getElementById('edit_deskripsi').value = deskripsi;
                                         document.getElementById('edit_tgl_permohonan').value = tanggal;
-                                        document.getElementById('edit_gambar').value = '';
 
-                                        // Show the modal
+                                        // Tampilkan modal
                                         new bootstrap.Modal(document.getElementById('editDataModal')).show();
                                     }
+
 
                                     function handleDelete(button) {
                                         const row = button.closest('tr');
                                         const id = row.dataset.id;
                                         const nama = row.querySelector('td:nth-child(2)').textContent.trim();
-                                        const jenisAlat = row.querySelector('td:nth-child(3)').textContent.trim();
-                                        const waktuKerusakan = row.querySelector('td:nth-child(4)').textContent.trim();
-                                        const penyebabKerusakan = row.querySelector('td:nth-child(5)').textContent.trim();
+                                        const nik = row.querySelector('td:nth-child(3)').textContent.trim();
+                                        const jenis = row.querySelector('td:nth-child(6)').textContent.trim();
 
-                                        // Populate the delete modal
                                         document.getElementById('delete_id').value = id;
                                         document.getElementById('delete_nama_pemohon').textContent = nama;
-                                        document.getElementById('delete_jenis_alat').textContent = jenisAlat;
-                                        document.getElementById('delete_penyebab_kerusakan').textContent = penyebabKerusakan;
+                                        document.getElementById('delete_nik').textContent = nik;
+                                        document.getElementById('delete_jenis_bantuan').textContent = jenis;
 
-                                        // Show the modal
                                         new bootstrap.Modal(document.getElementById('deleteModal')).show();
                                     }
 
@@ -458,67 +421,55 @@ $conn->close();
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Permohonan Perikanan</h5>
+                    <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Permohonan Bantuan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="formTambahData">
+                <form id="formTambahData" enctype="multipart/form-data">
                     <div class="modal-body">
+                        <input type="hidden" name="id_user" value="<?= $id_user ?>">
+
                         <div class="mb-3">
                             <label for="nama_pemohon" class="form-label">Nama Pemohon</label>
-                            <div>
-                                <input type="text" class="form-control" name="username" value="<?= $nama; ?>" disabled>
-                            </div>
+                            <input type="text" class="form-control" name="username" value="<?= $nama ?>" disabled>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Jenis Alat</label>
-                            <select name="jenis_alat" class="form-control" id="jenis_alat">
-                                <option value="">Pilih Jenis Alat</option>
-                                <optgroup label="1. Alat Pengolahan Tanah">
-                                    <option value="Cangkul" <?= ($jenis_alat == "Cangkul") ? 'selected' : '' ?>>Cangkul → Alat manual paling umum untuk menggemburkan tanah.</option>
-                                    <option value="Bajak Singkal" <?= ($jenis_alat == "Bajak Singkal") ? 'selected' : '' ?>>Bajak Singkal → Digunakan bersama sapi atau traktor untuk membalik tanah.</option>
-                                    <option value="Rotavator" <?= ($jenis_alat == "Rotavator") ? 'selected' : '' ?>>Rotavator → Mesin untuk menggemburkan tanah setelah dibajak.</option>
-                                </optgroup>
-                                <optgroup label="2. Alat Penanaman">
-                                    <option value="Tugal" <?= ($jenis_alat == "Tugal") ? 'selected' : '' ?>>Tugal → Alat manual untuk membuat lubang tanam (misalnya untuk jagung dan kedelai).</option>
-                                    <option value="Mesin Penanam Padi" <?= ($jenis_alat == "Mesin Penanam Padi") ? 'selected' : '' ?>>Mesin Penanam Padi (Rice Transplanter) → Untuk menanam padi secara cepat dan merata.</option>
-                                    <option value="Alat Semai Bibit" <?= ($jenis_alat == "Alat Semai Bibit") ? 'selected' : '' ?>>Alat Semai Bibit → Untuk menanam bibit dalam tray sebelum dipindahkan ke lahan.</option>
-                                </optgroup>
-                                <optgroup label="3. Alat Pemeliharaan Tanaman">
-                                    <option value="Sprayer" <?= ($jenis_alat == "Sprayer") ? 'selected' : '' ?>>Sprayer (Semprotan) → Untuk menyemprot pestisida atau pupuk cair.</option>
-                                    <option value="Hand Sprayer" <?= ($jenis_alat == "Hand Sprayer") ? 'selected' : '' ?>>Hand Sprayer → Semprotan manual untuk pertanian skala kecil.</option>
-                                    <option value="Power Sprayer" <?= ($jenis_alat == "Power Sprayer") ? 'selected' : '' ?>>Power Sprayer → Mesin semprot bertenaga untuk skala lebih besar.</option>
-                                    <option value="Pompa Air" <?= ($jenis_alat == "Pompa Air") ? 'selected' : '' ?>>Pompa Air → Untuk mengalirkan air ke sawah atau ladang.</option>
-                                    <option value="Mulsa Plastik" <?= ($jenis_alat == "Mulsa Plastik") ? 'selected' : '' ?>>Mulsa Plastik → Digunakan untuk menutup tanah agar mengurangi penguapan air dan pertumbuhan gulma.</option>
-                                </optgroup>
-                                <optgroup label="4. Alat Panen dan Pascapanen">
-                                    <option value="Sabit dan Arit" <?= ($jenis_alat == "Sabit dan Arit") ? 'selected' : '' ?>>Sabit dan Arit → Alat manual untuk memanen padi dan rumput.</option>
-                                    <option value="Combine Harvester" <?= ($jenis_alat == "Combine Harvester") ? 'selected' : '' ?>>Combine Harvester → Mesin panen padi yang dapat sekaligus merontokkan gabah.</option>
-                                    <option value="Alat Perontok Padi" <?= ($jenis_alat == "Alat Perontok Padi") ? 'selected' : '' ?>>Alat Perontok Padi (Thresher) → Untuk memisahkan padi dari jeraminya.</option>
-                                    <option value="Alat Pengering Gabah" <?= ($jenis_alat == "Alat Pengering Gabah") ? 'selected' : '' ?>>Alat Pengering Gabah → Untuk mengeringkan gabah sebelum digiling.</option>
-                                </optgroup>
+                            <label class="form-label">NIK</label>
+                            <input type="text" name="nik" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Alamat</label>
+                            <input type="text" name="alamat" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">No. Telp</label>
+                            <input type="text" name="no_telp" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Jenis Bantuan</label>
+                            <select name="jenis_bantuan" class="form-control" required>
+                                <option value="">Pilih Jenis Bantuan</option>
+                                <option value="Pangan">Pangan</option>
+                                <option value="Pertanian">Pertanian</option>
+                                <option value="Perikanan">Perikanan</option>
+                                <option value="UMKM">UMKM</option>
                             </select>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Penyebab Kerusakan</label>
-                            <input type="text" name="penyebab_kerusakan" class="form-control" required>
+                            <label class="form-label">Deskripsi Bantuan</label>
+                            <textarea name="deskripsi_bantuan" class="form-control" required></textarea>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Permintaan</label>
-                            <select name="permintaan" class="form-control" id="edit_permintaan" required>
-                                <option value="">Pilih Permintaan</option>
-                                <option value="Perbaikan">Perbaikan</option>
-                                <option value="Ganti Baru">Ganti Baru</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tanggal</label>
+                            <label class="form-label">Tanggal Permohonan</label>
                             <input type="date" name="tgl_permohonan" class="form-control" value="<?= date('Y-m-d') ?>" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Gambar</label>
-                            <input type="file" name="gambar" class="form-control" accept="image/*" required>
-                        </div>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn bg-gradient-green text-white">Simpan</button>
@@ -533,67 +484,55 @@ $conn->close();
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editDataModalLabel">Edit Data Permohonan Perikanan</h5>
+                    <h5 class="modal-title" id="editDataModalLabel">Edit Data Permohonan Bantuan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="formEditData">
+                <form id="formEditData" enctype="multipart/form-data">
                     <div class="modal-body">
-                        <input type="hidden" id="edit_id" name="id">
+                        <input type="hidden" id="edit_id" name="id_bantuan">
+
                         <div class="mb-3">
                             <label for="nama_pemohon" class="form-label">Nama Pemohon</label>
-                            <input type="text" class="form-control" name="username" value="<?= $nama; ?>" disabled>
+                            <input type="text" class="form-control" name="username" value="<?= $nama ?>" disabled>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Jenis Alat</label>
-                            <select name="jenis_alat" class="form-control" id="edit_jenis_alat">
-                                <option value="">Pilih Jenis Alat</option>
-                                <optgroup label="1. Alat Pengolahan Tanah">
-                                    <option value="Cangkul" <?= ($jenis_alat == "Cangkul") ? 'selected' : '' ?>>Cangkul → Alat manual paling umum untuk menggemburkan tanah.</option>
-                                    <option value="Bajak Singkal" <?= ($jenis_alat == "Bajak Singkal") ? 'selected' : '' ?>>Bajak Singkal → Digunakan bersama sapi atau traktor untuk membalik tanah.</option>
-                                    <option value="Rotavator" <?= ($jenis_alat == "Rotavator") ? 'selected' : '' ?>>Rotavator → Mesin untuk menggemburkan tanah setelah dibajak.</option>
-                                </optgroup>
-                                <optgroup label="2. Alat Penanaman">
-                                    <option value="Tugal" <?= ($jenis_alat == "Tugal") ? 'selected' : '' ?>>Tugal → Alat manual untuk membuat lubang tanam (misalnya untuk jagung dan kedelai).</option>
-                                    <option value="Mesin Penanam Padi" <?= ($jenis_alat == "Mesin Penanam Padi") ? 'selected' : '' ?>>Mesin Penanam Padi (Rice Transplanter) → Untuk menanam padi secara cepat dan merata.</option>
-                                    <option value="Alat Semai Bibit" <?= ($jenis_alat == "Alat Semai Bibit") ? 'selected' : '' ?>>Alat Semai Bibit → Untuk menanam bibit dalam tray sebelum dipindahkan ke lahan.</option>
-                                </optgroup>
-                                <optgroup label="3. Alat Pemeliharaan Tanaman">
-                                    <option value="Sprayer" <?= ($jenis_alat == "Sprayer") ? 'selected' : '' ?>>Sprayer (Semprotan) → Untuk menyemprot pestisida atau pupuk cair.</option>
-                                    <option value="Hand Sprayer" <?= ($jenis_alat == "Hand Sprayer") ? 'selected' : '' ?>>Hand Sprayer → Semprotan manual untuk pertanian skala kecil.</option>
-                                    <option value="Power Sprayer" <?= ($jenis_alat == "Power Sprayer") ? 'selected' : '' ?>>Power Sprayer → Mesin semprot bertenaga untuk skala lebih besar.</option>
-                                    <option value="Pompa Air" <?= ($jenis_alat == "Pompa Air") ? 'selected' : '' ?>>Pompa Air → Untuk mengalirkan air ke sawah atau ladang.</option>
-                                    <option value="Mulsa Plastik" <?= ($jenis_alat == "Mulsa Plastik") ? 'selected' : '' ?>>Mulsa Plastik → Digunakan untuk menutup tanah agar mengurangi penguapan air dan pertumbuhan gulma.</option>
-                                </optgroup>
-                                <optgroup label="4. Alat Panen dan Pascapanen">
-                                    <option value="Sabit dan Arit" <?= ($jenis_alat == "Sabit dan Arit") ? 'selected' : '' ?>>Sabit dan Arit → Alat manual untuk memanen padi dan rumput.</option>
-                                    <option value="Combine Harvester" <?= ($jenis_alat == "Combine Harvester") ? 'selected' : '' ?>>Combine Harvester → Mesin panen padi yang dapat sekaligus merontokkan gabah.</option>
-                                    <option value="Alat Perontok Padi" <?= ($jenis_alat == "Alat Perontok Padi") ? 'selected' : '' ?>>Alat Perontok Padi (Thresher) → Untuk memisahkan padi dari jeraminya.</option>
-                                    <option value="Alat Pengering Gabah" <?= ($jenis_alat == "Alat Pengering Gabah") ? 'selected' : '' ?>>Alat Pengering Gabah → Untuk mengeringkan gabah sebelum digiling.</option>
-                                </optgroup>
+                            <label class="form-label">NIK</label>
+                            <input type="text" name="nik" class="form-control" id="edit_nik" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Alamat</label>
+                            <input type="text" name="alamat" class="form-control" id="edit_alamat" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">No. Telp</label>
+                            <input type="text" name="no_telp" class="form-control" id="edit_telp" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Jenis Bantuan</label>
+                            <select name="jenis_bantuan" class="form-control" id="edit_jenis_bantuan" required>
+                                <option value="">Pilih Jenis Bantuan</option>
+                                <option value="Pangan">Pangan</option>
+                                <option value="Pertanian">Pertanian</option>
+                                <option value="Perikanan">Perikanan</option>
+                                <option value="UMKM">UMKM</option>
                             </select>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Penyebab Kerusakan</label>
-                            <input type="text" name="penyebab_kerusakan" class="form-control" id="edit_penyebab_kerusakan" required>
+                            <label class="form-label">Deskripsi Bantuan</label>
+                            <textarea name="deskripsi_bantuan" class="form-control" id="edit_deskripsi" required></textarea>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Permintaan</label>
-                            <select name="permintaan" class="form-control" id="edit_permintaan" required>
-                                <option value="">Pilih Permintaan</option>
-                                <option value="Perbaikan">Perbaikan</option>
-                                <option value="Ganti Baru">Ganti Baru</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tanggal</label>
-                            <input type="date" name="tgl_permohonan" class="form-control" id="edit_tgl_permohonan" value="<?= date('Y-m-d') ?>" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Gambar</label>
-                            <input type="file" name="gambar" class="form-control" id="edit_gambar" accept="image/*">
-                            <small class="text-muted">Biarkan kosong jika tidak ingin mengubah gambar</small>
+                            <label class="form-label">Tanggal Permohonan</label>
+                            <input type="date" name="tgl_permohonan" class="form-control" id="edit_tgl_permohonan" required>
                         </div>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn bg-gradient-info text-white">Update</button>
@@ -616,8 +555,8 @@ $conn->close();
                     <p>Detail Permohonan:</p>
                     <ul>
                         <li>Nama Pemohon: <span id="delete_nama_pemohon"></span></li>
-                        <li>Jenis Alat: <span id="delete_jenis_alat"></span></li>
-                        <li>Penyebab Kerusakan: <span id="delete_penyebab_kerusakan"></span></li>
+                        <li>NIK: <span id="delete_nik"></span></li>
+                        <li>Jenis Bantuan: <span id="delete_jenis_bantuan"></span></li>
                     </ul>
                     <input type="hidden" id="delete_id">
                 </div>

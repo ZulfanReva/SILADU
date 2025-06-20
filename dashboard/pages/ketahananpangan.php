@@ -31,22 +31,19 @@ if ($result->num_rows > 0) {
     $level = 'Tidak Diketahui';
 }
 
-// Ambil data permohonan dari tabel permohonan_alat_pertanian berdasarkan id_user
-$sql_permohonan = "SELECT id_permohonan, jenis_alat, penyebab_kerusakan, permintaan, tgl_permohonan, path_gambar, status 
-                  FROM permohonan_alat_pertanian 
+// Ambil data pengaduan
+$sql_pengaduan = "SELECT id_permohonan, jenis_alat, penyebab_kerusakan, permintaan, tgl_permohonan, path_gambar, status 
+                  FROM permohonan_alat_ketahananpangan
                   WHERE id_user = ?";
-$stmt_permohonan = $conn->prepare($sql_permohonan);
-$stmt_permohonan->bind_param("i", $id_user);
-$stmt_permohonan->execute();
-$result_permohonan = $stmt_permohonan->get_result();
-$permohonan_list = [];
+$stmt_pengaduan = $conn->prepare($sql_pengaduan);
+$stmt_pengaduan->bind_param("i", $id_user);
+$stmt_pengaduan->execute();
+$result_pengaduan = $stmt_pengaduan->get_result();
 
-if ($result_permohonan->num_rows > 0) {
-    while ($row_permohonan = $result_permohonan->fetch_assoc()) {
-        $permohonan_list[] = $row_permohonan;
-    }
+while ($row_pengaduan = $result_pengaduan->fetch_assoc()) {
+    $pengaduan_list[] = $row_pengaduan;
 }
-$stmt_permohonan->close();
+$stmt_pengaduan->close();
 
 // Inisialisasi variabel
 $jenis_alat = '';
@@ -57,69 +54,62 @@ $status = 'Diproses'; // default status
 $sukses = '';
 $errors = [];
 
-// Handle form submit
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id_user = $_SESSION['id_user'];
-    $jenis_alat = $_POST['jenis_alat'];
-    $penyebab_kerusakan = trim($_POST['penyebab_kerusakan']);
-    $permintaan = $_POST['permintaan'];
-    $tgl_permohonan = $_POST['tgl_permohonan'];
-    $status = 'Diproses'; // Default status
+// Handle submit form
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $jenis_alat = $_POST['jenis_alat'] ?? '';
+    $penyebab_kerusakan = trim($_POST['penyebab_kerusakan'] ?? '');
+    $permintaan = $_POST['permintaan'] ?? '';
+    $tgl_permohonan = $_POST['tgl_permohonan'] ?? date('Y-m-d');
     $path_gambar = '';
 
-    // Validasi input
-    $errors = [];
-    if (empty($jenis_alat)) {
-        $errors[] = 'Jenis alat harus dipilih.';
-    }
-    if (empty($penyebab_kerusakan)) {
-        $errors[] = 'Penyebab kerusakan harus diisi.';
-    }
+    // Validasi
+    if (empty($jenis_alat)) $errors[] = 'Jenis alat harus dipilih.';
+    if (empty($penyebab_kerusakan)) $errors[] = 'Penyebab kerusakan harus diisi.';
     if (empty($permintaan) || !in_array($permintaan, ['Perbaikan', 'Ganti Baru'])) {
-        $errors[] = 'Permintaan harus dipilih (Perbaikan atau Ganti Baru).';
+        $errors[] = 'Permintaan harus dipilih dengan benar.';
     }
-    if (empty($tgl_permohonan)) {
-        $errors[] = 'Tanggal permohonan harus diisi.';
-    }
+    if (empty($tgl_permohonan)) $errors[] = 'Tanggal pengaduan harus diisi.';
 
-    // Validasi dan proses upload gambar
+    // Validasi dan upload gambar
     if (!empty($_FILES['gambar']['name'])) {
-        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
-        $file_extension = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
-        if (!in_array($file_extension, $allowed_extensions)) {
-            $errors[] = 'File gambar harus berformat JPG, JPEG, PNG, atau GIF.';
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+        $file_ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($file_ext, $allowed_ext)) {
+            $errors[] = 'File harus berupa JPG, JPEG, PNG, atau GIF.';
         } else {
-            $upload_dir = 'uploads/permohonan/';
-            if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, 0755, true);
-            }
-            $file_name = uniqid() . '.' . $file_extension;
+            $upload_dir = 'uploads/pengaduan/';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+
+            $file_name = uniqid('img_', true) . '.' . $file_ext;
             $path_gambar = $upload_dir . $file_name;
 
             if (!move_uploaded_file($_FILES['gambar']['tmp_name'], $path_gambar)) {
-                $errors[] = 'Gagal mengupload gambar.';
+                $errors[] = 'Gagal mengunggah gambar.';
             }
         }
     } else {
-        $errors[] = 'Gambar harus diupload.';
+        $errors[] = 'Gambar wajib diunggah.';
     }
 
-    // Jika tidak ada error, simpan ke database
+    // Simpan ke database
     if (count($errors) === 0) {
-        $stmt = $conn->prepare('INSERT INTO permohonan_alat_pertanian (id_user, jenis_alat, penyebab_kerusakan, permintaan, tgl_permohonan, path_gambar, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-        $stmt->bind_param('isssssss', $id_user, $jenis_alat, $penyebab_kerusakan, $permintaan, $tgl_permohonan, $path_gambar, $status);
+        $stmt = $conn->prepare("INSERT INTO permohonan_alat_ketahananpangan (id_user, jenis_alat, penyebab_kerusakan, permintaan, tgl_permohonan, path_gambar, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issssss", $id_user, $jenis_alat, $penyebab_kerusakan, $permintaan, $tgl_permohonan, $path_gambar, $status);
 
         if ($stmt->execute()) {
-            $sukses = 'permohonan berhasil dikirim.';
-            // Reset input
+            $sukses = 'Pengaduan berhasil dikirim.';
+            // Reset
             $jenis_alat = $penyebab_kerusakan = $permintaan = $path_gambar = '';
             $tgl_permohonan = date('Y-m-d');
         } else {
-            $errors[] = 'Gagal menyimpan data: ' . $stmt->error;
+            $errors[] = 'Gagal menyimpan: ' . $stmt->error;
         }
+
         $stmt->close();
     }
 }
+
 $conn->close();
 ?>
 
@@ -133,7 +123,7 @@ $conn->close();
     <!-- <link rel="icon" type="image/png" href="../assets/img/favicon.png"> -->
     <link rel="icon" href="../../assets/images/logos/favicon.png" type="image/png">
     <title>
-        SILADUMA | Pertanian
+        SILADUMA | Ketahanan Pangan
     </title>
     <!--     Fonts and icons     -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -166,7 +156,7 @@ $conn->close();
                 <div class="col-12">
                     <div class="card mb-4">
                         <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Tabel Permohonan Pertanian</h6>
+                            <h6 class="mb-0">Tabel Ketahanan Pangan</h6>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-sm bg-gradient-green btn-sm mb-0 text-white"
                                     data-bs-toggle="modal" data-bs-target="#">
@@ -235,7 +225,7 @@ $conn->close();
                                                 <img src="path/to/image.jpg" alt="Gambar Alat"
                                                     style="width: 50px; height: auto;" onclick="enlargeImage(this)">
                                             </td>
-                                            <td class="text-center" style="padding: 10px;"status">
+                                            <td class="text-center status">
                                                 <span class="badge badge-sm bg-gradient-secondary">Diproses</span>
                                             </td>
                                             <td class="text-center" style="padding: 10px;">
@@ -458,10 +448,10 @@ $conn->close();
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Permohonan Perikanan</h5>
+                    <h5 class="modal-title" id="tambahDataModalLabel">Tambah Data Permohonan Ketahanan Pangan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="formTambahData">
+                <form id="formTambahData" enctype="multipart/form-data">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="nama_pemohon" class="form-label">Nama Pemohon</label>
@@ -473,28 +463,29 @@ $conn->close();
                             <label class="form-label">Jenis Alat</label>
                             <select name="jenis_alat" class="form-control" id="jenis_alat">
                                 <option value="">Pilih Jenis Alat</option>
-                                <optgroup label="1. Alat Pengolahan Tanah">
-                                    <option value="Cangkul" <?= ($jenis_alat == "Cangkul") ? 'selected' : '' ?>>Cangkul → Alat manual paling umum untuk menggemburkan tanah.</option>
-                                    <option value="Bajak Singkal" <?= ($jenis_alat == "Bajak Singkal") ? 'selected' : '' ?>>Bajak Singkal → Digunakan bersama sapi atau traktor untuk membalik tanah.</option>
-                                    <option value="Rotavator" <?= ($jenis_alat == "Rotavator") ? 'selected' : '' ?>>Rotavator → Mesin untuk menggemburkan tanah setelah dibajak.</option>
+                                <optgroup label="1. Alat Penyimpanan dan Pengawetan Pangan">
+                                    <option value="Cold Storage" <?= ($jenis_alat == "Cold Storage") ? 'selected' : '' ?>>Cold Storage (Ruang Pendingin) → Untuk menyimpan bahan pangan agar tetap segar.</option>
+                                    <option value="Vacuum Sealer" <?= ($jenis_alat == "Vacuum Sealer") ? 'selected' : '' ?>>Vacuum Sealer → Untuk mengemas makanan agar tahan lama.</option>
+                                    <option value="Silo" <?= ($jenis_alat == "Silo") ? 'selected' : '' ?>>Silo → Digunakan untuk menyimpan gabah atau bahan pangan dalam jumlah besar.</option>
+                                    <option value="Gudang Penyimpanan Pangan" <?= ($jenis_alat == "Gudang Penyimpanan Pangan") ? 'selected' : '' ?>>Gudang Penyimpanan Pangan → Untuk menjaga stok pangan dalam jangka waktu tertentu.</option>
                                 </optgroup>
-                                <optgroup label="2. Alat Penanaman">
-                                    <option value="Tugal" <?= ($jenis_alat == "Tugal") ? 'selected' : '' ?>>Tugal → Alat manual untuk membuat lubang tanam (misalnya untuk jagung dan kedelai).</option>
-                                    <option value="Mesin Penanam Padi" <?= ($jenis_alat == "Mesin Penanam Padi") ? 'selected' : '' ?>>Mesin Penanam Padi (Rice Transplanter) → Untuk menanam padi secara cepat dan merata.</option>
-                                    <option value="Alat Semai Bibit" <?= ($jenis_alat == "Alat Semai Bibit") ? 'selected' : '' ?>>Alat Semai Bibit → Untuk menanam bibit dalam tray sebelum dipindahkan ke lahan.</option>
+                                <optgroup label="2. Alat Pengolahan Pangan">
+                                    <option value="Mesin Pengering Pangan" <?= ($jenis_alat == "Mesin Pengering Pangan") ? 'selected' : '' ?>>Mesin Pengering Pangan → Untuk mengurangi kadar air pada bahan pangan seperti beras, jagung, dan ikan.</option>
+                                    <option value="Alat Penggiling Padi" <?= ($jenis_alat == "Alat Penggiling Padi") ? 'selected' : '' ?>>Alat Penggiling Padi (Rice Mill) → Untuk menggiling gabah menjadi beras siap konsumsi.</option>
+                                    <option value="Alat Penepung" <?= ($jenis_alat == "Alat Penepung") ? 'selected' : '' ?>>Alat Penepung (Disk Mill) → Untuk menggiling bahan pangan seperti jagung dan kedelai menjadi tepung.</option>
+                                    <option value="Alat Pengasapan Ikan" <?= ($jenis_alat == "Alat Pengasapan Ikan") ? 'selected' : '' ?>>Alat Pengasapan Ikan → Untuk mengawetkan ikan dengan proses pengasapan.</option>
+                                    <option value="Alat Pengolahan Produk Olahan" <?= ($jenis_alat == "Alat Pengolahan Produk Olahan") ? 'selected' : '' ?>>Alat Pengolahan Produk Olahan → Seperti mesin pembuat kerupuk, mesin pembuat nugget, dan lainnya.</option>
                                 </optgroup>
-                                <optgroup label="3. Alat Pemeliharaan Tanaman">
-                                    <option value="Sprayer" <?= ($jenis_alat == "Sprayer") ? 'selected' : '' ?>>Sprayer (Semprotan) → Untuk menyemprot pestisida atau pupuk cair.</option>
-                                    <option value="Hand Sprayer" <?= ($jenis_alat == "Hand Sprayer") ? 'selected' : '' ?>>Hand Sprayer → Semprotan manual untuk pertanian skala kecil.</option>
-                                    <option value="Power Sprayer" <?= ($jenis_alat == "Power Sprayer") ? 'selected' : '' ?>>Power Sprayer → Mesin semprot bertenaga untuk skala lebih besar.</option>
-                                    <option value="Pompa Air" <?= ($jenis_alat == "Pompa Air") ? 'selected' : '' ?>>Pompa Air → Untuk mengalirkan air ke sawah atau ladang.</option>
-                                    <option value="Mulsa Plastik" <?= ($jenis_alat == "Mulsa Plastik") ? 'selected' : '' ?>>Mulsa Plastik → Digunakan untuk menutup tanah agar mengurangi penguapan air dan pertumbuhan gulma.</option>
+                                <optgroup label="3. Alat Pengujian Mutu Pangan">
+                                    <option value="Moisture Meter" <?= ($jenis_alat == "Moisture Meter") ? 'selected' : '' ?>>Moisture Meter → Untuk mengukur kadar air dalam beras, jagung, atau bahan pangan lainnya.</option>
+                                    <option value="pH Meter" <?= ($jenis_alat == "pH Meter") ? 'selected' : '' ?>>pH Meter → Untuk mengukur tingkat keasaman bahan pangan.</option>
+                                    <option value="Alat Uji Formalin dan Boraks" <?= ($jenis_alat == "Alat Uji Formalin dan Boraks") ? 'selected' : '' ?>>Alat Uji Formalin dan Boraks → Untuk mendeteksi bahan kimia berbahaya dalam makanan.</option>
+                                    <option value="Spektrofotometer" <?= ($jenis_alat == "Spektrofotometer") ? 'selected' : '' ?>>Spektrofotometer → Untuk menguji kandungan gizi dan zat kimia dalam bahan pangan.</option>
                                 </optgroup>
-                                <optgroup label="4. Alat Panen dan Pascapanen">
-                                    <option value="Sabit dan Arit" <?= ($jenis_alat == "Sabit dan Arit") ? 'selected' : '' ?>>Sabit dan Arit → Alat manual untuk memanen padi dan rumput.</option>
-                                    <option value="Combine Harvester" <?= ($jenis_alat == "Combine Harvester") ? 'selected' : '' ?>>Combine Harvester → Mesin panen padi yang dapat sekaligus merontokkan gabah.</option>
-                                    <option value="Alat Perontok Padi" <?= ($jenis_alat == "Alat Perontok Padi") ? 'selected' : '' ?>>Alat Perontok Padi (Thresher) → Untuk memisahkan padi dari jeraminya.</option>
-                                    <option value="Alat Pengering Gabah" <?= ($jenis_alat == "Alat Pengering Gabah") ? 'selected' : '' ?>>Alat Pengering Gabah → Untuk mengeringkan gabah sebelum digiling.</option>
+                                <optgroup label="4. Alat Distribusi dan Logistik Pangan">
+                                    <option value="Truk Berpendingin" <?= ($jenis_alat == "Truk Berpendingin") ? 'selected' : '' ?>>Truk Berpendingin (Refrigerated Truck) → Untuk mendistribusikan bahan pangan yang mudah rusak seperti daging dan susu.</option>
+                                    <option value="Kontainer Berpendingin" <?= ($jenis_alat == "Kontainer Berpendingin") ? 'selected' : '' ?>>Kontainer Berpendingin → Untuk menyimpan dan mengangkut stok pangan dalam jumlah besar.</option>
+                                    <option value="Timbangan Digital" <?= ($jenis_alat == "Timbangan Digital") ? 'selected' : '' ?>>Timbangan Digital → Untuk menimbang hasil pertanian dan pangan sebelum distribusi.</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -533,10 +524,10 @@ $conn->close();
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editDataModalLabel">Edit Data Permohonan Perikanan</h5>
+                    <h5 class="modal-title" id="editDataModalLabel">Edit Data Permohonan Ketahanan Pangan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="formEditData">
+                <form id="formEditData" enctype="multipart/form-data">
                     <div class="modal-body">
                         <input type="hidden" id="edit_id" name="id">
                         <div class="mb-3">
@@ -547,28 +538,29 @@ $conn->close();
                             <label class="form-label">Jenis Alat</label>
                             <select name="jenis_alat" class="form-control" id="edit_jenis_alat">
                                 <option value="">Pilih Jenis Alat</option>
-                                <optgroup label="1. Alat Pengolahan Tanah">
-                                    <option value="Cangkul" <?= ($jenis_alat == "Cangkul") ? 'selected' : '' ?>>Cangkul → Alat manual paling umum untuk menggemburkan tanah.</option>
-                                    <option value="Bajak Singkal" <?= ($jenis_alat == "Bajak Singkal") ? 'selected' : '' ?>>Bajak Singkal → Digunakan bersama sapi atau traktor untuk membalik tanah.</option>
-                                    <option value="Rotavator" <?= ($jenis_alat == "Rotavator") ? 'selected' : '' ?>>Rotavator → Mesin untuk menggemburkan tanah setelah dibajak.</option>
+                                <optgroup label="1. Alat Penyimpanan dan Pengawetan Pangan">
+                                    <option value="Cold Storage" <?= ($jenis_alat == "Cold Storage") ? 'selected' : '' ?>>Cold Storage (Ruang Pendingin) → Untuk menyimpan bahan pangan agar tetap segar.</option>
+                                    <option value="Vacuum Sealer" <?= ($jenis_alat == "Vacuum Sealer") ? 'selected' : '' ?>>Vacuum Sealer → Untuk mengemas makanan agar tahan lama.</option>
+                                    <option value="Silo" <?= ($jenis_alat == "Silo") ? 'selected' : '' ?>>Silo → Digunakan untuk menyimpan gabah atau bahan pangan dalam jumlah besar.</option>
+                                    <option value="Gudang Penyimpanan Pangan" <?= ($jenis_alat == "Gudang Penyimpanan Pangan") ? 'selected' : '' ?>>Gudang Penyimpanan Pangan → Untuk menjaga stok pangan dalam jangka waktu tertentu.</option>
                                 </optgroup>
-                                <optgroup label="2. Alat Penanaman">
-                                    <option value="Tugal" <?= ($jenis_alat == "Tugal") ? 'selected' : '' ?>>Tugal → Alat manual untuk membuat lubang tanam (misalnya untuk jagung dan kedelai).</option>
-                                    <option value="Mesin Penanam Padi" <?= ($jenis_alat == "Mesin Penanam Padi") ? 'selected' : '' ?>>Mesin Penanam Padi (Rice Transplanter) → Untuk menanam padi secara cepat dan merata.</option>
-                                    <option value="Alat Semai Bibit" <?= ($jenis_alat == "Alat Semai Bibit") ? 'selected' : '' ?>>Alat Semai Bibit → Untuk menanam bibit dalam tray sebelum dipindahkan ke lahan.</option>
+                                <optgroup label="2. Alat Pengolahan Pangan">
+                                    <option value="Mesin Pengering Pangan" <?= ($jenis_alat == "Mesin Pengering Pangan") ? 'selected' : '' ?>>Mesin Pengering Pangan → Untuk mengurangi kadar air pada bahan pangan seperti beras, jagung, dan ikan.</option>
+                                    <option value="Alat Penggiling Padi" <?= ($jenis_alat == "Alat Penggiling Padi") ? 'selected' : '' ?>>Alat Penggiling Padi (Rice Mill) → Untuk menggiling gabah menjadi beras siap konsumsi.</option>
+                                    <option value="Alat Penepung" <?= ($jenis_alat == "Alat Penepung") ? 'selected' : '' ?>>Alat Penepung (Disk Mill) → Untuk menggiling bahan pangan seperti jagung dan kedelai menjadi tepung.</option>
+                                    <option value="Alat Pengasapan Ikan" <?= ($jenis_alat == "Alat Pengasapan Ikan") ? 'selected' : '' ?>>Alat Pengasapan Ikan → Untuk mengawetkan ikan dengan proses pengasapan.</option>
+                                    <option value="Alat Pengolahan Produk Olahan" <?= ($jenis_alat == "Alat Pengolahan Produk Olahan") ? 'selected' : '' ?>>Alat Pengolahan Produk Olahan → Seperti mesin pembuat kerupuk, mesin pembuat nugget, dan lainnya.</option>
                                 </optgroup>
-                                <optgroup label="3. Alat Pemeliharaan Tanaman">
-                                    <option value="Sprayer" <?= ($jenis_alat == "Sprayer") ? 'selected' : '' ?>>Sprayer (Semprotan) → Untuk menyemprot pestisida atau pupuk cair.</option>
-                                    <option value="Hand Sprayer" <?= ($jenis_alat == "Hand Sprayer") ? 'selected' : '' ?>>Hand Sprayer → Semprotan manual untuk pertanian skala kecil.</option>
-                                    <option value="Power Sprayer" <?= ($jenis_alat == "Power Sprayer") ? 'selected' : '' ?>>Power Sprayer → Mesin semprot bertenaga untuk skala lebih besar.</option>
-                                    <option value="Pompa Air" <?= ($jenis_alat == "Pompa Air") ? 'selected' : '' ?>>Pompa Air → Untuk mengalirkan air ke sawah atau ladang.</option>
-                                    <option value="Mulsa Plastik" <?= ($jenis_alat == "Mulsa Plastik") ? 'selected' : '' ?>>Mulsa Plastik → Digunakan untuk menutup tanah agar mengurangi penguapan air dan pertumbuhan gulma.</option>
+                                <optgroup label="3. Alat Pengujian Mutu Pangan">
+                                    <option value="Moisture Meter" <?= ($jenis_alat == "Moisture Meter") ? 'selected' : '' ?>>Moisture Meter → Untuk mengukur kadar air dalam beras, jagung, atau bahan pangan lainnya.</option>
+                                    <option value="pH Meter" <?= ($jenis_alat == "pH Meter") ? 'selected' : '' ?>>pH Meter → Untuk mengukur tingkat keasaman bahan pangan.</option>
+                                    <option value="Alat Uji Formalin dan Boraks" <?= ($jenis_alat == "Alat Uji Formalin dan Boraks") ? 'selected' : '' ?>>Alat Uji Formalin dan Boraks → Untuk mendeteksi bahan kimia berbahaya dalam makanan.</option>
+                                    <option value="Spektrofotometer" <?= ($jenis_alat == "Spektrofotometer") ? 'selected' : '' ?>>Spektrofotometer → Untuk menguji kandungan gizi dan zat kimia dalam bahan pangan.</option>
                                 </optgroup>
-                                <optgroup label="4. Alat Panen dan Pascapanen">
-                                    <option value="Sabit dan Arit" <?= ($jenis_alat == "Sabit dan Arit") ? 'selected' : '' ?>>Sabit dan Arit → Alat manual untuk memanen padi dan rumput.</option>
-                                    <option value="Combine Harvester" <?= ($jenis_alat == "Combine Harvester") ? 'selected' : '' ?>>Combine Harvester → Mesin panen padi yang dapat sekaligus merontokkan gabah.</option>
-                                    <option value="Alat Perontok Padi" <?= ($jenis_alat == "Alat Perontok Padi") ? 'selected' : '' ?>>Alat Perontok Padi (Thresher) → Untuk memisahkan padi dari jeraminya.</option>
-                                    <option value="Alat Pengering Gabah" <?= ($jenis_alat == "Alat Pengering Gabah") ? 'selected' : '' ?>>Alat Pengering Gabah → Untuk mengeringkan gabah sebelum digiling.</option>
+                                <optgroup label="4. Alat Distribusi dan Logistik Pangan">
+                                    <option value="Truk Berpendingin" <?= ($jenis_alat == "Truk Berpendingin") ? 'selected' : '' ?>>Truk Berpendingin (Refrigerated Truck) → Untuk mendistribusikan bahan pangan yang mudah rusak seperti daging dan susu.</option>
+                                    <option value="Kontainer Berpendingin" <?= ($jenis_alat == "Kontainer Berpendingin") ? 'selected' : '' ?>>Kontainer Berpendingin → Untuk menyimpan dan mengangkut stok pangan dalam jumlah besar.</option>
+                                    <option value="Timbangan Digital" <?= ($jenis_alat == "Timbangan Digital") ? 'selected' : '' ?>>Timbangan Digital → Untuk menimbang hasil pertanian dan pangan sebelum distribusi.</option>
                                 </optgroup>
                             </select>
                         </div>

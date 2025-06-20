@@ -251,7 +251,6 @@ if (isset($_GET['hal'])) {
                                         <option value="Timbangan Digital" <?= ($jenis_alat == "Timbangan Digital") ? 'selected' : '' ?>>Timbangan Digital → Untuk menimbang hasil pertanian dan pangan sebelum distribusi.</option>
                                     </optgroup>
                                 </select>
-
                             </div>
                         </div>
                         <div class="mb-3 row">
