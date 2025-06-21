@@ -394,10 +394,18 @@ $conn->close();
                             <label for="nama_pemohon" class="form-label">Nama Pemohon</label>
                             <input type="text" class="form-control" name="username" value="<?= $nama ?>" disabled>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label class="form-label">Jenis Tanaman</label>
-                            <input type="text" name="jenis_tanaman" class="form-control" required>
+                            <select name="jenis_tanaman" class="form-control" id="jenis_tanaman">
+                                <option value="">Pilih Jenis Tanaman</option>
+                                <option value="padi" <?= ($jenis_tanaman == "padi") ? 'selected' : '' ?>>Padi</option>
+                                <option value="cabai" <?= ($jenis_tanaman == "cabai") ? 'selected' : '' ?>>Cabai</option>
+                                <option value="tomat" <?= ($jenis_tanaman == "tomat") ? 'selected' : '' ?>>Tomat</option>
+                                <option value="terong" <?= ($jenis_tanaman == "terong") ? 'selected' : '' ?>>Terong</option>
+                                <option value="bayam" <?= ($jenis_tanaman == "bayam") ? 'selected' : '' ?>>Bayam</option>
+                                <option value="kangkung" <?= ($jenis_tanaman == "kangkung") ? 'selected' : '' ?>>Kangkung</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Alamat Pemohon</label>
@@ -434,7 +442,15 @@ $conn->close();
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Jenis Tanaman</label>
-                            <input type="text" name="jenis_tanaman" class="form-control" id="edit_jenis_tanaman" required>
+                             <select name="jenis_tanaman" class="form-control" id="edit_jenis_tanaman">
+                                <option value="">Pilih Jenis Tanaman</option>
+                                <option value="padi" <?= ($jenis_tanaman == "padi") ? 'selected' : '' ?>>Padi</option>
+                                <option value="cabai" <?= ($jenis_tanaman == "cabai") ? 'selected' : '' ?>>Cabai</option>
+                                <option value="tomat" <?= ($jenis_tanaman == "tomat") ? 'selected' : '' ?>>Tomat</option>
+                                <option value="terong" <?= ($jenis_tanaman == "terong") ? 'selected' : '' ?>>Terong</option>
+                                <option value="bayam" <?= ($jenis_tanaman == "bayam") ? 'selected' : '' ?>>Bayam</option>
+                                <option value="kangkung" <?= ($jenis_tanaman == "kangkung") ? 'selected' : '' ?>>Kangkung</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Alamat Pemohon</label>

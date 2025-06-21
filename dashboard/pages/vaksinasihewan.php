@@ -32,7 +32,7 @@ if ($result->num_rows > 0) {
 }
 
 // Ambil data permohonan vaksinasi hewan milik user (hanya satu karena id_user UNIQUE)
-$sql_permohonan = "SELECT id_permohonan, jenis_ternak, gejala, alamat_ternak, tgl_permohonan, status, catatan 
+$sql_permohonan = "SELECT id_permohonan, jenis_ternak, jumlah_ternak, jenis_vaksin, gejala, alamat_ternak, tgl_permohonan, status, catatan 
                    FROM permohonan_vaksinasi_hewan 
                    WHERE id_user = ?";
 $stmt_permohonan = $conn->prepare($sql_permohonan);
@@ -45,6 +45,8 @@ $stmt_permohonan->close();
 
 // Inisialisasi variabel form
 $jenis_ternak = $permohonan['jenis_ternak'] ?? '';
+$jumlah_ternak = $permohonan['jumlah_ternak'] ?? '';
+$jenis_vaksin = $permohonan['jenis_vaksin'] ?? '';
 $gejala = $permohonan['gejala'] ?? '';
 $alamat_ternak = $permohonan['alamat_ternak'] ?? '';
 $tgl_permohonan = $permohonan['tgl_permohonan'] ?? date('Y-m-d');
@@ -56,12 +58,16 @@ $errors = [];
 // Handle submit form
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jenis_ternak = trim($_POST['jenis_ternak'] ?? '');
+    $jumlah_ternak = intval($_POST['jumlah_ternak'] ?? 0);
+    $jenis_vaksin = trim($_POST['jenis_vaksin'] ?? '');
     $gejala = trim($_POST['gejala'] ?? '');
     $alamat_ternak = trim($_POST['alamat_ternak'] ?? '');
     $tgl_permohonan = $_POST['tgl_permohonan'] ?? date('Y-m-d');
 
     // Validasi
     if (empty($jenis_ternak)) $errors[] = 'Jenis ternak wajib diisi.';
+    if ($jumlah_ternak < 1) $errors[] = 'Jumlah ternak wajib diisi dan minimal 1.';
+    if (empty($jenis_vaksin)) $errors[] = 'Jenis vaksin wajib diisi.';
     if (empty($gejala)) $errors[] = 'Gejala wajib diisi.';
     if (empty($alamat_ternak)) $errors[] = 'Alamat ternak wajib diisi.';
     if (empty($tgl_permohonan)) $errors[] = 'Tanggal permohonan wajib diisi.';
@@ -71,15 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($permohonan) {
             // Sudah ada permohonan, update
             $stmt = $conn->prepare("UPDATE permohonan_vaksinasi_hewan 
-                SET jenis_ternak = ?, gejala = ?, alamat_ternak = ?, tgl_permohonan = ?, status = 'Diproses', catatan = NULL 
+                SET jenis_ternak = ?, jumlah_ternak = ?, jenis_vaksin = ?, gejala = ?, alamat_ternak = ?, tgl_permohonan = ?, status = 'Diproses', catatan = NULL 
                 WHERE id_user = ?");
-            $stmt->bind_param("ssssi", $jenis_ternak, $gejala, $alamat_ternak, $tgl_permohonan, $id_user);
+            $stmt->bind_param("sissssi", $jenis_ternak, $jumlah_ternak, $jenis_vaksin, $gejala, $alamat_ternak, $tgl_permohonan, $id_user);
         } else {
             // Belum ada, insert baru
             $stmt = $conn->prepare("INSERT INTO permohonan_vaksinasi_hewan 
-                (id_user, jenis_ternak, gejala, alamat_ternak, tgl_permohonan, status) 
-                VALUES (?, ?, ?, ?, ?, 'Diproses')");
-            $stmt->bind_param("issss", $id_user, $jenis_ternak, $gejala, $alamat_ternak, $tgl_permohonan);
+                (id_user, jenis_ternak, jumlah_ternak, jenis_vaksin, gejala, alamat_ternak, tgl_permohonan, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'Diproses')");
+            $stmt->bind_param("isissss", $id_user, $jenis_ternak, $jumlah_ternak, $jenis_vaksin, $gejala, $alamat_ternak, $tgl_permohonan);
         }
 
         if ($stmt->execute()) {
@@ -87,6 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Reset tampilan form
             $permohonan = [
                 'jenis_ternak' => $jenis_ternak,
+                'jumlah_ternak' => $jumlah_ternak,
+                'jenis_vaksin' => $jenis_vaksin,
                 'gejala' => $gejala,
                 'alamat_ternak' => $alamat_ternak,
                 'tgl_permohonan' => $tgl_permohonan,
@@ -100,8 +108,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 }
-
-$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -171,6 +177,8 @@ $conn->close();
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">No.</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Nama<br>Pemohon</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Jenis<br>Ternak</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Jumlah<br>Ternak</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Jenis<br>Vaksin</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Gejala</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Alamat<br>Ternak</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="padding: 9px;">Tanggal</th>
@@ -181,93 +189,63 @@ $conn->close();
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr data-id="1">
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">1</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">Ari Pratama</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">Sapi</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">Demam, Lesu</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">Jl. Ternak No.1</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">2025-06-18</p>
-                                            </td>
-                                            <td class="text-center status" style="padding: 9px;"><span class="badge badge-sm bg-gradient-secondary">Diproses</span></td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <select class="form-control form-control-sm validasi-petugas mx-auto" onchange="handlePetugasChange(this)" style="width: 80px;">
-                                                    <option value="">Pilih</option>
-                                                    <option value="ya">Ya</option>
-                                                    <option value="tidak">Tidak</option>
-                                                </select>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <select class="form-control form-control-sm validasi-kadis d-none mx-auto" onchange="handleKadisChange(this)" style="width: 80px;">
-                                                    <option value="">Pilih</option>
-                                                    <option value="ya">Ya</option>
-                                                    <option value="tidak">Tidak</option>
-                                                </select>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <button class="btn btn-sm bg-gradient-info text-white me-2" onclick="handleEdit(this)">
-                                                    <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
-                                                </button>
-                                                <button class="btn btn-sm bg-gradient-danger text-white" onclick="handleDelete(this)">
-                                                    <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-
-                                        <tr data-id="2">
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">2</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">Rina Sari</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">Ayam</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">Tidak mau makan</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">Dusun Ayam No.3</p>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <p class="text-xs font-weight-bold mb-0">2025-06-15</p>
-                                            </td>
-                                            <td class="text-center status" style="padding: 9px;"><span class="badge badge-sm bg-gradient-warning">Direview</span></td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <select class="form-control form-control-sm validasi-petugas mx-auto" onchange="handlePetugasChange(this)" style="width: 80px;">
-                                                    <option value="">Pilih</option>
-                                                    <option value="ya" selected>Ya</option>
-                                                    <option value="tidak">Tidak</option>
-                                                </select>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <select class="form-control form-control-sm validasi-kadis mx-auto" onchange="handleKadisChange(this)" style="width: 80px;">
-                                                    <option value="">Pilih</option>
-                                                    <option value="ya">Ya</option>
-                                                    <option value="tidak" selected>Tidak</option>
-                                                </select>
-                                            </td>
-                                            <td class="text-center" style="padding: 9px;">
-                                                <button class="btn btn-sm bg-gradient-info text-white me-2" onclick="handleEdit(this)">
-                                                    <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
-                                                </button>
-                                                <button class="btn btn-sm bg-gradient-danger text-white" onclick="handleDelete(this)">
-                                                    <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
+                                        <?php
+                                        // Contoh pengisian data dinamis dari database (ganti dengan query sesuai kebutuhan)
+                                        $no = 1;
+                                        $query = "SELECT p.*, u.nama FROM permohonan_vaksinasi_hewan p JOIN user u ON p.id_user = u.id_user ORDER BY p.tgl_permohonan DESC";
+                                        $result = $conn->query($query);
+                                        while ($row = $result->fetch_assoc()):
+                                        ?>
+                                            <tr data-id="<?= $row['id_permohonan'] ?>">
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <p class="text-xs font-weight-bold mb-0"><?= $no++ ?></p>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($row['nama']) ?></p>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($row['jenis_ternak']) ?></p>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($row['jumlah_ternak']) ?></p>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($row['jenis_vaksin']) ?></p>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($row['gejala']) ?></p>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($row['alamat_ternak']) ?></p>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($row['tgl_permohonan']) ?></p>
+                                                </td>
+                                                <td class="text-center status" style="padding: 9px;"><span class="badge badge-sm bg-gradient-secondary"><?= htmlspecialchars($row['status']) ?></span></td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <select class="form-control form-control-sm validasi-petugas mx-auto" onchange="handlePetugasChange(this)" style="width: 80px;">
+                                                        <option value="">Pilih</option>
+                                                        <option value="ya">Ya</option>
+                                                        <option value="tidak">Tidak</option>
+                                                    </select>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <select class="form-control form-control-sm validasi-kadis d-none mx-auto" onchange="handleKadisChange(this)" style="width: 80px;">
+                                                        <option value="">Pilih</option>
+                                                        <option value="ya">Ya</option>
+                                                        <option value="tidak">Tidak</option>
+                                                    </select>
+                                                </td>
+                                                <td class="text-center" style="padding: 9px;">
+                                                    <button class="btn btn-sm bg-gradient-info text-white me-2" onclick="handleEdit(this)">
+                                                        <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm bg-gradient-danger text-white" onclick="handleDelete(this)">
+                                                        <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <?php endwhile; ?>
                                     </tbody>
                                 </table>
 
@@ -340,13 +318,17 @@ $conn->close();
                                         const id = row.dataset.id;
                                         const nama = row.querySelector('td:nth-child(2)').textContent.trim();
                                         const jenisTernak = row.querySelector('td:nth-child(3)').textContent.trim();
-                                        const gejala = row.querySelector('td:nth-child(4)').textContent.trim();
-                                        const alamat = row.querySelector('td:nth-child(5)').textContent.trim();
-                                        const tanggal = row.querySelector('td:nth-child(6)').textContent.trim();
+                                        const jumlahTernak = row.querySelector('td:nth-child(4)').textContent.trim();
+                                        const jenisVaksin = row.querySelector('td:nth-child(5)').textContent.trim();
+                                        const gejala = row.querySelector('td:nth-child(6)').textContent.trim();
+                                        const alamat = row.querySelector('td:nth-child(7)').textContent.trim();
+                                        const tanggal = row.querySelector('td:nth-child(8)').textContent.trim();
 
                                         document.getElementById('edit_id').value = id;
                                         document.getElementById('edit_nama').value = nama;
                                         document.getElementById('edit_jenis_ternak').value = jenisTernak;
+                                        document.getElementById('edit_jumlah_ternak').value = jumlahTernak;
+                                        document.getElementById('edit_jenis_vaksin').value = jenisVaksin;
                                         document.getElementById('edit_gejala').value = gejala;
                                         document.getElementById('edit_alamat_ternak').value = alamat;
                                         document.getElementById('edit_tgl_permohonan').value = tanggal;
@@ -410,6 +392,16 @@ $conn->close();
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Jumlah Ternak</label>
+                            <input type="number" name="jumlah_ternak" class="form-control" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Jenis Vaksin</label>
+                            <input type="text" name="jenis_vaksin" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Gejala</label>
                             <input type="text" name="gejala" class="form-control" required>
                         </div>
@@ -460,6 +452,16 @@ $conn->close();
                                 <option value="Ayam">Ayam</option>
                                 <option value="Burung">Burung</option>
                             </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Jumlah Ternak</label>
+                            <input type="number" name="jumlah_ternak" class="form-control" id="edit_jumlah_ternak" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Jenis Vaksin</label>
+                            <input type="text" name="jenis_vaksin" class="form-control" id="edit_jenis_vaksin" required>
                         </div>
 
                         <div class="mb-3">
@@ -533,5 +535,9 @@ $conn->close();
     <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
     <script src="../assets/js/soft-ui-dashboard.min.js?v=1.0.7"></script>
 </body>
+
+<?php
+$conn->close(); // pindahkan ke sini, setelah semua pemakaian selesai
+?>
 
 </html>

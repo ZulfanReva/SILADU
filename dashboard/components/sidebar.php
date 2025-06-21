@@ -126,11 +126,11 @@
 
             <li class="nav-item">
                 <?php
-                $isActive = $current_page == 'profil.php.php';
+                $isActive = $current_page == 'profil.php';
                 $iconClass = $isActive ? 'icon-md' : 'icon-sm';
                 $iconSize = $isActive ? 50 : 30;
                 ?>
-                <a class="nav-link <?= $isActive ? 'active' : '' ?>" href="../pages/profil.php.php">
+                <a class="nav-link <?= $isActive ? 'active' : '' ?>" href="../pages/profil.php">
                     <div class="bg-gradient-green icon-shape <?= $iconClass ?> shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                         <img src="../assets/img/profil.png" alt="Profil" width="<?= $iconSize ?>" height="<?= $iconSize ?>">
                     </div>

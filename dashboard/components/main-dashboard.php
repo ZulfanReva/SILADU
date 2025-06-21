@@ -18,7 +18,7 @@
                     <div class="col-lg-5 ms-auto text-center mt-5 mt-lg-0">
                         <div class="border-radius-xl h-100">
                             <div class="position-relative d-flex align-items-center justify-content h-100">
-                                <img class="w-100 position-relative" src="../assets/img/illustrations/1.png" alt="rocket">
+                                <img class="w-100 position-relative" src="../assets/img/thumbnail-dashboard.png" alt="rocket">
                             </div>
                         </div>
                     </div>
