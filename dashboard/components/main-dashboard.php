@@ -1,3 +1,65 @@
+<?php
+// koneksi ke database
+$conn = new mysqli("localhost", "root", "", "siladu2");
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Query gabungan untuk 6 data layanan terbaru
+$sql = "
+(SELECT u.nama, 'Pengaduan' AS kategori, p.jenis_hama_penyakit AS subkategori, p.tgl_pengaduan AS tanggal, p.status
+ FROM pengaduan_hama_penyakit_tanaman p
+ JOIN user u ON u.id_user = p.id_user)
+
+UNION
+
+(SELECT u.nama, 'Permohonan' AS kategori, 'Perikanan' AS subkategori, p.tgl_permohonan AS tanggal, p.status
+ FROM permohonan_alat_perikanan p
+ JOIN user u ON u.id_user = p.id_user)
+
+UNION
+
+(SELECT u.nama, 'Permohonan' AS kategori, 'Pertanian' AS subkategori, p.tgl_permohonan AS tanggal, p.status
+ FROM permohonan_alat_pertanian p
+ JOIN user u ON u.id_user = p.id_user)
+
+UNION
+
+(SELECT u.nama, 'Permohonan' AS kategori, 'Ketahanan Pangan' AS subkategori, p.tgl_permohonan AS tanggal, p.status
+ FROM permohonan_alat_ketahananpangan p
+ JOIN user u ON u.id_user = p.id_user)
+
+UNION
+
+(SELECT u.nama, 'Permohonan' AS kategori, 'Bantuan' AS subkategori, p.tgl_permohonan AS tanggal, p.status_pemohon AS status
+ FROM permohonan_bantuan p
+ JOIN user u ON u.id_user = p.id_user)
+
+UNION
+
+(SELECT u.nama, 'Permohonan' AS kategori, 'Uji Tanaman' AS subkategori, p.tgl_permohonan AS tanggal, p.status
+ FROM permohonan_uji_tanaman p
+ JOIN user u ON u.id_user = p.id_user)
+
+UNION
+
+(SELECT u.nama, 'Permohonan' AS kategori, 'Vaksinasi Hewan' AS subkategori, p.tgl_permohonan AS tanggal, p.status
+ FROM permohonan_vaksinasi_hewan p
+ JOIN user u ON u.id_user = p.id_user)
+
+UNION
+
+(SELECT u.nama, 'Pengajuan' AS kategori, 'Izin' AS subkategori, p.tgl_pengajuan AS tanggal, p.status
+ FROM pengajuan_izin p
+ JOIN user u ON u.id_user = p.id_user)
+
+ORDER BY tanggal DESC
+LIMIT 7
+";
+
+$result = $conn->query($sql);
+?>
+
 <div class="row mt-4">
     <div class="col-lg-7">
         <!-- Welcome Card -->
@@ -44,7 +106,6 @@
                                     border-radius: 0.5rem;
                                     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
                                     margin-right: 10px;
-
                                     display: flex;
                                     justify-content: center;
                                     align-items: center;
@@ -56,7 +117,6 @@
                                     line-height: 1;
                                     display: inline-block;
                                     transform: translateY(1px);
-                                    /* tweak jika masih terlihat turun */
                                 }
                             </style>
 
@@ -82,132 +142,37 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">Ahmad Yani</h6>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <?php
+                                $badge = match ($row['status']) {
+                                    'Diterima' => 'bg-gradient-success',
+                                    'Ditolak' => 'bg-gradient-danger',
+                                    'Direview' => 'bg-gradient-warning',
+                                    default => 'bg-gradient-secondary'
+                                };
+                                ?>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm"><?= $row['nama'] ?></h6>
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Pengaduan</span>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Hama dan Penyakit</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="text-xs font-weight-bold">2025-06-10</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="badge badge-sm bg-gradient-success">Diterima</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">Siti Aminah</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Permohonan</span>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Alat Pertanian</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="text-xs font-weight-bold">2025-06-12</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="badge badge-sm bg-gradient-warning">Direview</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">Budi Santoso</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Pengajuan</span>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Izin</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="text-xs font-weight-bold">2025-06-15</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="badge badge-sm bg-gradient-success">Diterima</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">Rina Sari</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Survey</span>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Uji Tanaman</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="text-xs font-weight-bold">2025-06-16</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="badge badge-sm bg-gradient-secondary">Diproses</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">Dedi Pratama</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Permohonan</span>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Bantuan</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="text-xs font-weight-bold">2025-06-17</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="badge badge-sm bg-gradient-warning">Direview</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex px-2 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">Lina Wijaya</h6>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Pengajuan</span>
-                                </td>
-                                <td class="align-middle text-sm">
-                                    <span class="text-xs font-weight-bold">Vaksinasi Hewan</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="text-xs font-weight-bold">2025-06-17</span>
-                                </td>
-                                <td class="align-middle text-center text-sm">
-                                    <span class="badge badge-sm bg-gradient-danger">Ditolak</span>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td class="align-middle text-sm">
+                                        <span class="text-xs font-weight-bold"><?= $row['kategori'] ?></span>
+                                    </td>
+                                    <td class="align-middle text-sm">
+                                        <span class="text-xs font-weight-bold"><?= $row['subkategori'] ?></span>
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        <span class="text-xs font-weight-bold"><?= $row['tanggal'] ?></span>
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        <span class="badge badge-sm <?= $badge ?>"><?= $row['status'] ?></span>
+                                    </td>
+                                </tr>
+                            <?php endwhile ?>
                         </tbody>
                     </table>
                 </div>
@@ -235,7 +200,7 @@
                     <select id="categorySelect" class="form-select" style="font-size: 0.8rem; padding: 0.25rem 0.5rem; height: 1.8rem; transition: border-color 0.2s ease-in-out;">
                         <option value="all">Semua Kategori</option>
                         <option value="pengaduan">Pengaduan</option>
-                        <option value="permohonanan">Permohonanan</option>
+                        <option value="permohonan">permohonan</option>
                         <option value="pengajuan">Pengajuan</option>
                         <option value="survey">Survey</option>
                     </select>
@@ -256,272 +221,142 @@
     <!-- Sidebar -->
     <?php include '../components/footer.php'; ?>
 
+    <?php
+    // --- Statistik Layanan Warga ---
+    // Ambil data statistik per tahun, bulan, dan kategori/subkategori
+    $statistik = [
+        '2023' => [],
+        '2024' => [],
+        '2025' => []
+    ];
+    $bulanLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    // Helper: inisialisasi array 12 bulan dengan 0
+    function arr12() { return array_fill(0, 12, 0); }
+
+    // 1. Hama dan Penyakit (Pengaduan)
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_pengaduan) th, MONTH(tgl_pengaduan) bln, COUNT(*) jml FROM pengaduan_hama_penyakit_tanaman WHERE YEAR(tgl_pengaduan)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['hama'] = $arr;
+    }
+    // 2. Alat Perikanan
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_permohonan) th, MONTH(tgl_permohonan) bln, COUNT(*) jml FROM permohonan_alat_perikanan WHERE YEAR(tgl_permohonan)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['perikanan'] = $arr;
+    }
+    // 3. Alat Pertanian
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_permohonan) th, MONTH(tgl_permohonan) bln, COUNT(*) jml FROM permohonan_alat_pertanian WHERE YEAR(tgl_permohonan)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['pertanian'] = $arr;
+    }
+    // 4. Alat Ketahanan Pangan
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_permohonan) th, MONTH(tgl_permohonan) bln, COUNT(*) jml FROM permohonan_alat_ketahananpangan WHERE YEAR(tgl_permohonan)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['ketahanan'] = $arr;
+    }
+    // 5. Bantuan
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_permohonan) th, MONTH(tgl_permohonan) bln, COUNT(*) jml FROM permohonan_bantuan WHERE YEAR(tgl_permohonan)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['bantuan'] = $arr;
+    }
+    // 6. Uji Tanaman
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_permohonan) th, MONTH(tgl_permohonan) bln, COUNT(*) jml FROM permohonan_uji_tanaman WHERE YEAR(tgl_permohonan)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['uji'] = $arr;
+    }
+    // 7. Vaksinasi Hewan
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_permohonan) th, MONTH(tgl_permohonan) bln, COUNT(*) jml FROM permohonan_vaksinasi_hewan WHERE YEAR(tgl_permohonan)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['vaksinasi'] = $arr;
+    }
+    // 8. Izin
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_pengajuan) th, MONTH(tgl_pengajuan) bln, COUNT(*) jml FROM pengajuan_izin WHERE YEAR(tgl_pengajuan)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['izin'] = $arr;
+    }
+    // 9. Survey
+    foreach ([2023,2024,2025] as $thn) {
+        $q = $conn->query("SELECT YEAR(tgl_survei) th, MONTH(tgl_survei) bln, COUNT(*) jml FROM survei_kepuasan WHERE YEAR(tgl_survei)=$thn GROUP BY bln");
+        $arr = arr12();
+        while($r = $q->fetch_assoc()) $arr[$r['bln']-1] = (int)$r['jml'];
+        $statistik[$thn]['survey'] = $arr;
+    }
+
+    // Format chartData untuk JS
+    function chartDataJS($statistik, $tahun) {
+        global $bulanLabels;
+        return [
+            'all' => [
+                'labels' => $bulanLabels,
+                'datasets' => [
+                    [ 'label'=>'Hama dan Penyakit', 'data'=>$statistik[$tahun]['hama'], 'borderColor'=>'#e91e63', 'backgroundColor'=>'rgba(233,30,99,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Alat Perikanan', 'data'=>$statistik[$tahun]['perikanan'], 'borderColor'=>'#9c27b0', 'backgroundColor'=>'rgba(156,39,176,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Alat Pertanian', 'data'=>$statistik[$tahun]['pertanian'], 'borderColor'=>'#9966FF', 'backgroundColor'=>'rgba(103,58,183,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Alat Ketahanan Pangan', 'data'=>$statistik[$tahun]['ketahanan'], 'borderColor'=>'#FFCD56', 'backgroundColor'=>'rgba(63,81,181,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Bantuan', 'data'=>$statistik[$tahun]['bantuan'], 'borderColor'=>'#2196f3', 'backgroundColor'=>'rgba(33,150,243,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Uji Tanaman', 'data'=>$statistik[$tahun]['uji'], 'borderColor'=>'#00ACC1', 'backgroundColor'=>'rgba(3,169,244,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Vaksinasi Hewan', 'data'=>$statistik[$tahun]['vaksinasi'], 'borderColor'=>'#FF6B6B', 'backgroundColor'=>'rgba(0,188,212,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Izin', 'data'=>$statistik[$tahun]['izin'], 'borderColor'=>'#4bc0c0', 'backgroundColor'=>'rgba(0,150,136,0.1)', 'tension'=>0.4 ]
+                ]
+            ],
+            'pengaduan' => [
+                'labels' => $bulanLabels,
+                'datasets' => [
+                    [ 'label'=>'Hama dan Penyakit', 'data'=>$statistik[$tahun]['hama'], 'borderColor'=>'#e91e63', 'backgroundColor'=>'rgba(233,30,99,0.1)', 'tension'=>0.4 ]
+                ]
+            ],
+            'permohonan' => [
+                'labels' => $bulanLabels,
+                'datasets' => [
+                    [ 'label'=>'Alat Perikanan', 'data'=>$statistik[$tahun]['perikanan'], 'borderColor'=>'#9c27b0', 'backgroundColor'=>'rgba(156,39,176,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Alat Pertanian', 'data'=>$statistik[$tahun]['pertanian'], 'borderColor'=>'#9966FF', 'backgroundColor'=>'rgba(103,58,183,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Alat Ketahanan Pangan', 'data'=>$statistik[$tahun]['ketahanan'], 'borderColor'=>'#FFCD56', 'backgroundColor'=>'rgba(63,81,181,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Bantuan', 'data'=>$statistik[$tahun]['bantuan'], 'borderColor'=>'#2196f3', 'backgroundColor'=>'rgba(33,150,243,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Uji Tanaman', 'data'=>$statistik[$tahun]['uji'], 'borderColor'=>'#00ACC1', 'backgroundColor'=>'rgba(3,169,244,0.1)', 'tension'=>0.4 ],
+                    [ 'label'=>'Vaksinasi Hewan', 'data'=>$statistik[$tahun]['vaksinasi'], 'borderColor'=>'#FF6B6B', 'backgroundColor'=>'rgba(0,188,212,0.1)', 'tension'=>0.4 ]
+                ]
+            ],
+            'pengajuan' => [
+                'labels' => $bulanLabels,
+                'datasets' => [
+                    [ 'label'=>'Izin', 'data'=>$statistik[$tahun]['izin'], 'borderColor'=>'#4bc0c0', 'backgroundColor'=>'rgba(0,150,136,0.1)', 'tension'=>0.4 ]
+                ]
+            ],
+            'survey' => [
+                'labels' => $bulanLabels,
+                'datasets' => [
+                    [ 'label'=>'Survey Data', 'data'=>$statistik[$tahun]['survey'], 'borderColor'=>'#ff5722', 'backgroundColor'=>'rgba(255,87,34,0.1)', 'tension'=>0.4 ]
+                ]
+            ]
+        ];
+    }
+
+    $chartData = [
+        '2023' => chartDataJS($statistik, 2023),
+        '2024' => chartDataJS($statistik, 2024),
+        '2025' => chartDataJS($statistik, 2025)
+    ];
+    ?>
+
     <script>
         // Data dummy berdasarkan struktur dari gambar
-        const chartData = {
-            2023: {
-                all: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                            label: 'Hama dan Penyakit',
-                            data: [65, 59, 80, 81, 56, 55, 70, 65, 75, 85, 90, 95],
-                            borderColor: '#e91e63',
-                            backgroundColor: 'rgba(233, 30, 99, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Perikanan',
-                            data: [45, 49, 60, 71, 46, 45, 50, 55, 65, 75, 80, 85],
-                            borderColor: '#9c27b0',
-                            backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Pertanian',
-                            data: [35, 39, 50, 61, 36, 35, 40, 45, 55, 65, 70, 75],
-                            borderColor: '#9966FF',
-                            backgroundColor: 'rgba(103, 58, 183, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Ketahanan Pangan',
-                            data: [25, 29, 40, 51, 26, 25, 30, 35, 45, 55, 60, 65],
-                            borderColor: '#FFCD56',
-                            backgroundColor: 'rgba(63, 81, 181, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Bantuan',
-                            data: [55, 69, 70, 61, 66, 75, 80, 75, 85, 95, 100, 105],
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Uji Tanaman',
-                            data: [15, 19, 30, 41, 16, 15, 20, 25, 35, 45, 50, 55],
-                            borderColor: '#00ACC1',
-                            backgroundColor: 'rgba(3, 169, 244, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Vaksinasi Hewan',
-                            data: [40, 44, 55, 66, 41, 40, 45, 50, 60, 70, 75, 80],
-                            borderColor: '#FF6B6B',
-                            backgroundColor: 'rgba(0, 188, 212, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Izin',
-                            data: [30, 34, 45, 56, 31, 30, 35, 40, 50, 60, 65, 70],
-                            borderColor: '#4bc0c0',
-                            backgroundColor: 'rgba(0, 150, 136, 0.1)',
-                            tension: 0.4
-                        }
-                    ]
-                }
-            },
-            2024: {
-                all: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                            label: 'Hama dan Penyakit',
-                            data: [75, 69, 90, 91, 66, 65, 80, 75, 85, 95, 100, 105],
-                            borderColor: '#e91e63',
-                            backgroundColor: 'rgba(233, 30, 99, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Perikanan',
-                            data: [55, 59, 70, 81, 56, 55, 60, 65, 75, 85, 90, 95],
-                            borderColor: '#9c27b0',
-                            backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Pertanian',
-                            data: [45, 49, 60, 71, 46, 45, 50, 55, 65, 75, 80, 85],
-                            borderColor: '#9966FF',
-                            backgroundColor: 'rgba(103, 58, 183, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Ketahanan Pangan',
-                            data: [35, 39, 50, 61, 36, 35, 40, 45, 55, 65, 70, 75],
-                            borderColor: '#FFCD56',
-                            backgroundColor: 'rgba(63, 81, 181, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Bantuan',
-                            data: [65, 79, 80, 71, 76, 85, 90, 85, 95, 105, 110, 115],
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Uji Tanaman',
-                            data: [25, 29, 40, 51, 26, 25, 30, 35, 45, 55, 60, 65],
-                            borderColor: '#00ACC1',
-                            backgroundColor: 'rgba(3, 169, 244, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Vaksinasi Hewan',
-                            data: [50, 54, 65, 76, 51, 50, 55, 60, 70, 80, 85, 90],
-                            borderColor: '#FF6B6B',
-                            backgroundColor: 'rgba(0, 188, 212, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Izin',
-                            data: [40, 44, 55, 66, 41, 40, 45, 50, 60, 70, 75, 80],
-                            borderColor: '#4bc0c0',
-                            backgroundColor: 'rgba(0, 150, 136, 0.1)',
-                            tension: 0.4
-                        }
-                    ]
-                },
-                pengaduan: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                        label: 'Hama dan Penyakit',
-                        data: [75, 69, 90, 91, 66, 65, 80, 75, 85, 95, 100, 105],
-                        borderColor: '#e91e63',
-                        backgroundColor: 'rgba(233, 30, 99, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                permohonanan: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                            label: 'Alat Perikanan',
-                            data: [55, 59, 70, 81, 56, 55, 60, 65, 75, 85, 90, 95],
-                            borderColor: '#9c27b0',
-                            backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Pertanian',
-                            data: [45, 49, 60, 71, 46, 45, 50, 55, 65, 75, 80, 85],
-                            borderColor: '#9966FF',
-                            backgroundColor: 'rgba(103, 58, 183, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Ketahanan Pangan',
-                            data: [35, 39, 50, 61, 36, 35, 40, 45, 55, 65, 70, 75],
-                            borderColor: '#FFCD56',
-                            backgroundColor: 'rgba(63, 81, 181, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Bantuan',
-                            data: [65, 79, 80, 71, 76, 85, 90, 85, 95, 105, 110, 115],
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Uji Tanaman',
-                            data: [25, 29, 40, 51, 26, 25, 30, 35, 45, 55, 60, 65],
-                            borderColor: '#00ACC1',
-                            backgroundColor: 'rgba(3, 169, 244, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Vaksinasi Hewan',
-                            data: [50, 54, 65, 76, 51, 50, 55, 60, 70, 80, 85, 90],
-                            borderColor: '#FF6B6B',
-                            backgroundColor: 'rgba(0, 188, 212, 0.1)',
-                            tension: 0.4
-                        }
-                    ]
-                },
-                pengajuan: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                        label: 'Izin',
-                        data: [40, 44, 55, 66, 41, 40, 45, 50, 60, 70, 75, 80],
-                        borderColor: '#4bc0c0',
-                        backgroundColor: 'rgba(0, 150, 136, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                survey: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                        label: 'Survey Data',
-                        data: [20, 25, 30, 35, 28, 32, 38, 42, 45, 48, 52, 55],
-                        borderColor: '#ff5722',
-                        backgroundColor: 'rgba(255, 87, 34, 0.1)',
-                        tension: 0.4
-                    }]
-                }
-            },
-            2025: {
-                all: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-                    datasets: [{
-                            label: 'Hama dan Penyakit',
-                            data: [85, 79, 100, 101, 76, 75],
-                            borderColor: '#e91e63',
-                            backgroundColor: 'rgba(233, 30, 99, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Perikanan',
-                            data: [65, 69, 80, 91, 66, 65],
-                            borderColor: '#9c27b0',
-                            backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Pertanian',
-                            data: [55, 59, 70, 81, 56, 55],
-                            borderColor: '#9966FF',
-                            backgroundColor: 'rgba(103, 58, 183, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Alat Ketahanan Pangan',
-                            data: [45, 49, 60, 71, 46, 45],
-                            borderColor: '#FFCD56',
-                            backgroundColor: 'rgba(63, 81, 181, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Bantuan',
-                            data: [75, 89, 90, 81, 86, 95],
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Uji Tanaman',
-                            data: [35, 39, 50, 61, 36, 35],
-                            borderColor: '#00ACC1',
-                            backgroundColor: 'rgba(3, 169, 244, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Vaksinasi Hewan',
-                            data: [60, 64, 75, 86, 61, 60],
-                            borderColor: '#FF6B6B',
-                            backgroundColor: 'rgba(0, 188, 212, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Izin',
-                            data: [50, 54, 65, 76, 51, 50],
-                            borderColor: '#4bc0c0',
-                            backgroundColor: 'rgba(0, 150, 136, 0.1)',
-                            tension: 0.4
-                        }
-                    ]
-                }
-            }
-        };
+        const chartData = <?php echo json_encode($chartData, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE); ?>;
 
         let chart;
 
@@ -549,8 +384,11 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            min: 0,
+                            max: 100,
                             ticks: {
-                                color: '#ffffff'
+                                color: '#ffffff',
+                                stepSize: 20
                             },
                             grid: {
                                 color: 'rgba(255, 255, 255, 0.2)'
