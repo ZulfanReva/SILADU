@@ -45,19 +45,12 @@ CREATE TABLE `user` (
 --
 -- Dumping data untuk tabel `user`
 --
--- Password default untuk semua user: 12345678
--- Hash dihasilkan dari: password_hash("12345678", PASSWORD_DEFAULT)
--- Kamu bisa pakai hash ini secara langsung:
 
--- $2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa
-
-INSERT INTO `user` 
-(`id_user`, `username`, `password`, `nama`, `email`, `alamat`, `tlp`, `level`, `nip`)
-VALUES
-(1, 'wargates', '$2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa', 'Andi Warga', 'andi@example.com', 'Jl. Warga Sejahtera No.1', '081234567890', 'warga', NULL),
-(2, 'petugastes', '$2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa', 'Budi Petugas', 'budi@example.com', 'Kantor Pertanian Kab. A', '082345678901', 'petugas', '198765432109876543'),
-(3, 'kepaladinastes', '$2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa', 'Citra Kadis', 'citra@example.com', 'Dinas Pertanian Provinsi', '083456789012', 'kepala_dinas', '123456789012345678'),
-(4, 'admintes', '$2y$10$e0WzZkF9Z6nXG4XNT3OnAu3NnkKJqVCHNgX7ZnUM3IhI/FiEoKlWa', 'Dewi Admin', 'dewi@example.com', 'Komplek Pemerintahan', '084567890123', 'admin', 'F9J8H7K');
+INSERT INTO `user` (`id_user`, `username`, `password`, `nama`, `email`, `alamat`, `tlp`, `level`, `nip`) VALUES
+(1, 'rizkypratama', '$2y$10$J8AptR86TZXO.0jSKQDztuK6Ir7mi5Gh8MywlTouHIaJOeJgit0uq', 'Rizky Pratama', 'warga@gmail.com', 'Banjarmasin', '08123456789', 'warga', ''),
+(2, 'darmawanhidayat', '$2y$10$LBwU7HlFDPJDOwPaYByfHuWmzf/j0e9OhYbum7fkOeOJy/2PZSfWe', 'Darmawan Hidayat', 'warga@gmail.com', 'Banjarmasin', '08234567890', 'warga', ''),
+(3, 'sitinurhaliza', '$2y$10$v8VKf2Lbx3Ct9ASmh2N4YOodK/4V/JcoDyf4.l93Vx/cU8VOGbwlS', 'Siti Nurhaliza', 'warga@gmail.com', 'Banjarmasin', '08345678901', 'warga', ''),
+(4, 'ayulestari', '$2y$10$UapjUzHTzvSxMC5I4RjJTO5vdZkr95CSOgxxVOb8b4H5qzwKz52em', 'Ayu Lestari', 'warga@gmail.com', 'Banjarmasin', '08456789012', 'warga', '');
 
 --
 -- Struktur dari tabel `pengaduan_hama_penyakit_tanaman`
